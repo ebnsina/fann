@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull, lt, or, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, isNull, lt, or, sql } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
 import { db } from '../db';
 import { companies } from '../db/schema/company';
@@ -214,11 +214,22 @@ async function assertCanPostAs(companyId: string, userId: string): Promise<void>
 
 /** Companies this person may post as. Drives the composer's picker. */
 export async function companiesForAuthor(userId: string) {
-	return db
-		.select({ id: companies.id, name: companies.name })
-		.from(companies)
-		.innerJoin(orgMembers, eq(orgMembers.organizationId, companies.organizationId))
-		.where(eq(orgMembers.userId, userId));
+	return (
+		db
+			.select({ id: companies.id, name: companies.name })
+			.from(companies)
+			.innerJoin(orgMembers, eq(orgMembers.organizationId, companies.organizationId))
+			// The `deletedAt` check is belt and braces: closing a company also deletes
+			// its memberships, so a closed one already falls out of this join. Relying on
+			// that alone couples "can I post as them" to an unrelated line in
+			// `organization-account.ts`, and the day somebody closes a company without
+			// clearing the team is the day a dead company reappears in this menu.
+			.where(and(eq(orgMembers.userId, userId), isNull(companies.deletedAt)))
+			// Alphabetical, because this is a menu somebody reads. Postgres returns rows
+			// in whatever order suits it, which is fine for two companies and unusable
+			// for twenty.
+			.orderBy(asc(companies.name))
+	);
 }
 
 /** Soft-delete, author only. */
