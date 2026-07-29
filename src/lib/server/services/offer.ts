@@ -377,6 +377,13 @@ async function notifyOffer(offer: Offer, applicationId: string, origin: string):
 		entityType: 'offer',
 		entityId: offer.id,
 		tag: 'offer.sent',
+		origin,
+		notify: {
+			category: 'offer',
+			title: `You have an offer — ${context.jobTitle}`,
+			body: context.companyName,
+			url: '/me/applications'
+		},
 		subject: `An offer from ${context.companyName} for ${context.jobTitle}`,
 		text: [
 			`Hi ${context.name},`,

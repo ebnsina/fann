@@ -6,9 +6,25 @@
 	import Icon from '#lib/components/ui/Icon.svelte';
 	import { toast } from '#lib/components/ui/toast.svelte';
 	import { icons } from '#lib/design/icons';
+	import Switch from '#lib/components/ui/Switch.svelte';
 	import { deleteAccount, deletionBlocker } from '../../account.remote';
+	import {
+		notificationSettings,
+		setNotificationEmailPreference
+	} from '../../../notifications.remote';
 
 	const { blocker } = $derived(await deletionBlocker());
+	const settings = $derived(await notificationSettings());
+
+	async function setEmail(category: (typeof settings)[number]['category'], enabled: boolean) {
+		try {
+			// A command rather than the form: the switch is the whole interaction, and
+			// a save button beside a toggle is a second decision nobody asked for.
+			await setNotificationEmailPreference({ category, enabled });
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Could not save that.');
+		}
+	}
 
 	let confirming = $state(false);
 	let closing = $state(false);
@@ -62,6 +78,40 @@
 				</Button>
 				<span class="text-xs text-text-subtle">JSON, and small enough to open in anything.</span>
 			</div>
+		</div>
+	</Card>
+
+	<Card
+		title="Email"
+		description="What we send to your inbox. The product keeps a record either way."
+	>
+		<div class="flex flex-col gap-4">
+			<p class="text-sm text-text-muted">
+				Switching one of these off stops the email, not the notification. Everything still appears
+				on
+				<a href="/me/notifications" class="text-text-accent underline-offset-2 hover:underline">
+					your notifications
+				</a>
+				page, so turning email down never means missing an answer.
+			</p>
+
+			<div class="flex flex-col gap-px border border-border bg-border">
+				{#each settings as setting (setting.category)}
+					<div class="flex items-center justify-between gap-4 bg-surface p-(--fann-space-control)">
+						<span class="text-sm text-text">{setting.label}</span>
+						<Switch
+							checked={setting.email}
+							ariaLabel={setting.label}
+							onCheckedChange={(enabled) => setEmail(setting.category, enabled)}
+						/>
+					</div>
+				{/each}
+			</div>
+
+			<p class="text-xs text-text-subtle">
+				Sign-in and password emails are not listed. Those are you pressing a button and waiting for
+				the result, so there is nothing to switch off.
+			</p>
 		</div>
 	</Card>
 

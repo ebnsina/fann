@@ -16,7 +16,15 @@
 	 */
 	type Props = {
 		checked?: boolean;
+		/** Visible text beside the switch, and its accessible name. */
 		label?: string;
+		/**
+		 * Names the switch when the visible label lives elsewhere — a settings row
+		 * that puts its own text on the left, say. Without one of the two the
+		 * control is announced as an unnamed switch, which is the same trap
+		 * `Select` carries its `fallbackLabel` for.
+		 */
+		ariaLabel?: string;
 		id?: string;
 		name?: string;
 		disabled?: boolean;
@@ -31,6 +39,7 @@
 	let {
 		checked = $bindable(false),
 		label,
+		ariaLabel,
 		id,
 		name,
 		disabled = false,
@@ -55,6 +64,7 @@
 		id={inputId}
 		aria-checked={checked}
 		aria-labelledby={label ? `${inputId}-label` : undefined}
+		aria-label={label ? undefined : ariaLabel}
 		{disabled}
 		onclick={toggle}
 		class="inline-flex h-4 w-7 shrink-0 items-center border transition-colors duration-(--fann-duration-fast) disabled:opacity-50 {checked

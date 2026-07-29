@@ -6,6 +6,7 @@
 	longer existed.
 -->
 <script lang="ts">
+	import NotificationBell from './NotificationBell.svelte';
 	import { page } from '$app/state';
 	import ThemeToggle from '#lib/components/app/ThemeToggle.svelte';
 	import Wordmark from '#lib/components/app/Wordmark.svelte';
@@ -127,6 +128,16 @@
 				<ThemeToggle />
 
 				{#if user}
+					<!--
+						Inside its own boundary: the count is a separate query, and a slow
+						or failing one must not blank the header it sits in.
+					-->
+					<svelte:boundary>
+						<NotificationBell />
+						{#snippet pending()}
+							<span class="w-8"></span>
+						{/snippet}
+					</svelte:boundary>
 					<Button href="/me/applications" variant="ghost" size="sm">Applications</Button>
 					<Button href="/hire" size="sm">
 						Hire

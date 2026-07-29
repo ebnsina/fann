@@ -19,6 +19,7 @@ import {
 	Agreement02Icon,
 	BadgeCheckIcon,
 	Alert02Icon,
+	Notification03Icon,
 	Analytics01Icon,
 	Archive02Icon,
 	ArrowDown01Icon,
@@ -119,6 +120,8 @@ export const icons = {
 	candidates: UserGroupIcon,
 	companies: Building03Icon,
 	inbox: InboxIcon,
+	/** The notification bell. Named for the role, not the picture. */
+	notifications: Notification03Icon,
 	salary: MoneyBag01Icon,
 	/** A written offer of employment — the document, not the money in it. */
 	offer: Agreement02Icon,

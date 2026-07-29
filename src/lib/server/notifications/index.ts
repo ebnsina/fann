@@ -1,6 +1,11 @@
 import { db } from '../db';
 import { emailLog } from '../db/schema/platform';
 import { email as mailer, type EmailMessage } from '../email';
+import {
+	record as recordNotification,
+	unsubscribeLink,
+	type NotificationCategory
+} from '../services/notification';
 
 /**
  * Transactional notifications.
@@ -12,6 +17,11 @@ import { email as mailer, type EmailMessage } from '../email';
  *
  * Delivery never throws. A mail outage must not roll back a rejection that the
  * employer already committed to; the log carries the failure so it can be retried.
+ *
+ * When a `notify` block is present the in-app record is written **first and
+ * unconditionally**, and the email only follows if that category is still switched
+ * on. The order matters: the product's own memory of telling somebody must not
+ * depend on a mail provider, and a muted category must still leave a trail.
  */
 
 export interface DeliverInput extends EmailMessage {
@@ -19,12 +29,53 @@ export interface DeliverInput extends EmailMessage {
 	userId?: string | null;
 	entityType?: string;
 	entityId?: string;
+	/**
+	 * Write an in-app notification too, and respect the recipient's preferences.
+	 *
+	 * Omitted for messages that have no account behind them — an invitation to an
+	 * address nobody has signed up with yet has nowhere to put a bell badge.
+	 */
+	notify?: {
+		category: NotificationCategory;
+		title: string;
+		body?: string | null;
+		/** In-app path this notification links to. */
+		url?: string | null;
+	};
+	/**
+	 * Origin for the unsubscribe footer. Without it the footer is left off, which
+	 * is correct for the `account` category and for anything with no recipient
+	 * account to unsubscribe.
+	 */
+	origin?: string | null;
 }
 
 export async function deliver(input: DeliverInput): Promise<{ sent: boolean }> {
-	const { userId, entityType, entityId, ...message } = input;
+	const { userId, entityType, entityId, notify, origin, ...message } = input;
 	const recipients = Array.isArray(message.to) ? message.to : [message.to];
 	const toEmail = recipients.map((address) => address.email).join(', ');
+
+	if (notify && userId) {
+		const { emailAllowed } = await recordNotification({
+			userId,
+			category: notify.category,
+			tag: message.tag,
+			title: notify.title,
+			body: notify.body,
+			url: notify.url,
+			entityType: entityType ?? null,
+			entityId: entityId ?? null
+		});
+
+		// Muted, and deliberately not logged as a failure: nothing went wrong and a
+		// row in `email_log` saying "failed" would make a preference look like an
+		// outage the next time somebody audits deliverability.
+		if (!emailAllowed) return { sent: false };
+
+		if (origin && notify.category !== 'account') {
+			message.text = `${message.text}\n\n—\nTo stop these emails: ${unsubscribeLink(origin, userId, notify.category)}`;
+		}
+	}
 
 	try {
 		const result = await mailer.send(message);
@@ -84,6 +135,13 @@ export async function notifyApplicationReceived(
 		tag: 'application.received',
 		entityType: 'application',
 		entityId: context.applicationId,
+		origin: context.origin,
+		notify: {
+			category: 'application',
+			title: `${context.companyName} has your application`,
+			body: context.jobTitle,
+			url: '/me/applications'
+		},
 		text: [
 			`Hi ${to.name},`,
 			'',
@@ -162,6 +220,16 @@ export async function notifyApplicationStatusChanged(
 		tag: `application.${context.status}`,
 		entityType: 'application',
 		entityId: context.applicationId,
+		origin: context.origin,
+		notify: {
+			category: 'application',
+			// The subject line is already written as a sentence about this person's
+			// application, so the bell says the same thing rather than a second
+			// wording of it that could drift.
+			title: copy.subject(context.jobTitle),
+			body: context.status === 'rejected' ? (context.reason ?? null) : null,
+			url: '/me/applications'
+		},
 		text: lines.join('\n')
 	});
 }

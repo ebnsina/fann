@@ -238,6 +238,16 @@ async function notify(
 		entityType: 'interview',
 		entityId: interview.id,
 		tag: `interview.${kind}`,
+		origin,
+		notify: {
+			category: 'interview',
+			title:
+				kind === 'scheduled'
+					? `Interview scheduled — ${context.jobTitle}`
+					: `Interview cancelled — ${context.jobTitle}`,
+			body: context.companyName,
+			url: '/me/applications'
+		},
 		subject:
 			kind === 'scheduled'
 				? `Interview scheduled: ${context.jobTitle} at ${context.companyName}`

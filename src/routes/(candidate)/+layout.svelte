@@ -15,6 +15,7 @@
 	 */
 	const TABS = [
 		{ href: '/me/applications', label: 'Applications', icon: icons.inbox },
+		{ href: '/me/notifications', label: 'Notifications', icon: icons.notifications },
 		{ href: '/me/saved', label: 'Saved jobs', icon: icons.save },
 		{ href: '/me/documents', label: 'Your CVs', icon: icons.document },
 		{ href: '/me/profile', label: 'Profile', icon: icons.profile },

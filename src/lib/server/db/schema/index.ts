@@ -21,4 +21,5 @@ export * from './ats';
 export * from './salary';
 export * from './social';
 export * from './ai';
+export * from './notification';
 export * from './platform';

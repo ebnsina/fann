@@ -120,6 +120,13 @@
       "when": 1785301921792,
       "tag": "0016_spicy_supernaut",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1785305587802,
+      "tag": "0017_quick_scarlet_spider",
+      "breakpoints": true
     }
   ]
 }

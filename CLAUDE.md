@@ -1083,6 +1083,42 @@ silently failing provider is otherwise indistinguishable from a working one.
 - Services take an optional `origin`; omitting it skips the email. Background jobs
   and tests use that to avoid mailing real people.
 
+### The notification centre
+
+`services/notification.ts`. **The in-app record and the email are two things, and
+the split is the whole design.** A `notify` block on `deliver` writes the row
+first and unconditionally; the email only follows if that category is still on.
+
+- **Muting email never mutes the product's own memory.** A candidate who turned
+  email off must still be able to sign in and find out they were turned down —
+  otherwise "every application gets an answer" quietly depends on a mail provider
+  staying up. There is a test that fails if a muted category skips the row.
+- **A missing preference row means enabled**, and the table stores only the
+  exceptions. Two representations of "on" is how a default silently stops
+  applying to everyone who never opened the screen; defaulting to off would have
+  made every existing account go quiet on the day this shipped, which is
+  indistinguishable from an employer who stopped replying.
+- **`account` has no preference row and no switch.** Verification and password
+  reset are somebody pressing a button and waiting for the result. An account you
+  cannot prove you own is a lockout, not a preference — and a leaked unsubscribe
+  link must not be able to cause one, so no token for `account` is ever valid.
+- **Unsubscribe is a signed GET, not a remote function.** It is followed from an
+  email by someone who is probably not signed in, possibly in another browser,
+  possibly with no JavaScript, so it is a `+page.server.ts` load. Acting on GET is
+  right here for the same reason: a link needing a confirmation button is one a
+  mail client's own unsubscribe affordance cannot use. It only ever switches a
+  category **off** — a link that could switch things on would re-subscribe people
+  who left — and the token is an HMAC over (user, category), so it cannot be
+  aimed at an id somebody guessed. It does not expire, because the unsubscribe
+  link people dig out is the one in a three-month-old email.
+- Marking read is **scoped to the owner in the same statement**, never checked
+  first: naming somebody else's id must change nothing, and check-then-write
+  leaves a gap where it could.
+- The bell links to the page rather than opening a popover holding the list. A
+  dropdown would need its own paging, read-tracking and empty state — three
+  copies of a page that already exists — and on a phone it covers what it
+  describes.
+
 ## End-to-end tests
 
 `e2e/hiring.e2e.ts` walks the whole product once in a browser: post a job →
