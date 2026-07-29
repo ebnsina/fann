@@ -116,10 +116,13 @@ crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(req.headers['fann-sign
 <!-- Hero ------------------------------------------------------------------- -->
 <Section bordered={false}>
 	<div class="flex flex-col gap-6">
-		<Badge>
-			<Icon icon={icons.launch} class="size-3.5" />
-			Free during public beta
-		</Badge>
+		<!-- `w-fit`: a flex column would otherwise stretch the pill the full width. -->
+		<span class="w-fit">
+			<Badge>
+				<Icon icon={icons.launch} class="size-3.5" />
+				Free during public beta
+			</Badge>
+		</span>
 
 		<h1 class="max-w-3xl text-3xl leading-tight font-bold text-text lg:text-5xl">
 			Post your jobs from wherever you already keep them.
