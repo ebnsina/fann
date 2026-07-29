@@ -448,7 +448,9 @@ export const COMPANY_INCLUDED: string[] = [
 	'A drag-and-drop board for your hiring stages',
 	'Interview scheduling, with calendar invites',
 	'Interview feedback nobody can read until they have written their own',
-	'Written offers, answered by the candidate in their own account'
+	'Written offers, answered by the candidate in their own account',
+	'Download everything your company holds, and close the account yourself',
+	'An API to post jobs and updates from your own site, with signed webhooks'
 ];
 
 /**
@@ -462,7 +464,8 @@ export const COMPANY_INCLUDED: string[] = [
  * reads as a page nobody maintains.
  */
 export const COMPANY_ROADMAP: string[] = [
-	'Downloading your data, and connecting Fann to other systems'
+	'Paid plans — everything is free while this is in public beta',
+	'Job alerts for candidates, so a new listing reaches people who want it'
 ];
 
 /**

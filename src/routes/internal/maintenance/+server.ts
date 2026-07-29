@@ -2,6 +2,7 @@ import { json } from '@sveltejs/kit';
 import { assertScheduler } from '#lib/server/cron';
 import { deleteExpiredSessions } from '#lib/server/auth/session';
 import { expireOverdue } from '#lib/server/services/offer';
+import { dispatchPending } from '#lib/server/services/webhook';
 import type { RequestHandler } from './$types';
 
 /**
@@ -18,18 +19,26 @@ import type { RequestHandler } from './$types';
 export const POST: RequestHandler = async ({ request }) => {
 	assertScheduler(request);
 
-	const results = await Promise.allSettled([expireOverdue(), deleteExpiredSessions()]);
+	const results = await Promise.allSettled([
+		expireOverdue(),
+		deleteExpiredSessions(),
+		dispatchPending()
+	]);
 
-	const [offers, sessions] = results;
+	const [offers, sessions, webhooks] = results;
 
 	if (offers.status === 'rejected') console.error('Expiring offers failed', offers.reason);
 	if (sessions.status === 'rejected') console.error('Pruning sessions failed', sessions.reason);
+	if (webhooks.status === 'rejected') console.error('Dispatching webhooks failed', webhooks.reason);
 
 	return json({
 		ok: results.every((result) => result.status === 'fulfilled'),
 		// How many offers lapsed. Worth returning rather than logging: a scheduler
 		// that reports "0 for three weeks" is how you notice the job stopped working.
 		offersExpired: offers.status === 'fulfilled' ? offers.value : null,
-		sessionsPruned: sessions.status === 'fulfilled' ? true : null
+		sessionsPruned: sessions.status === 'fulfilled' ? true : null,
+		// Same reasoning: a queue that reports zero sent and a rising number failed
+		// is the only way anyone notices an integration quietly broke.
+		webhooks: webhooks.status === 'fulfilled' ? webhooks.value : null
 	});
 };

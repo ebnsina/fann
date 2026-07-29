@@ -12,6 +12,7 @@ import { companies } from '../db/schema/company';
 import { users } from '../db/schema/identity';
 import { jobs } from '../db/schema/job';
 import { notifyApplicationReceived, notifyApplicationStatusChanged } from '../notifications';
+import { enqueue as enqueueWebhook } from './webhook';
 
 /**
  * Applications.
@@ -160,6 +161,16 @@ export async function apply(input: ApplyInput): Promise<Application> {
 		}
 	}
 
+	// Queued, never sent from here: a stranger's endpoint being slow must not sit
+	// inside the path a candidate is waiting on. `enqueue` only writes rows.
+	await enqueueWebhook(job.organizationId, 'application.created', {
+		applicationId: application.id,
+		jobId: job.id,
+		jobTitle: job.title,
+		status: application.status,
+		appliedAt: application.createdAt
+	});
+
 	return application;
 }
 
@@ -247,6 +258,14 @@ export async function changeStatus(
 	// never throws — a mail outage is recorded in `email_log`, not raised here,
 	// because the employer's decision is already committed either way.
 	if (origin) await notifyStatusChange(updated, to, reason ?? null, origin);
+
+	await enqueueWebhook(organizationId, 'application.status_changed', {
+		applicationId: updated.id,
+		jobId: updated.jobId,
+		from: current.status,
+		to,
+		reason: reason ?? null
+	});
 
 	return updated;
 }

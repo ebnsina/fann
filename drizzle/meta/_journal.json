@@ -127,6 +127,13 @@
       "when": 1785305587802,
       "tag": "0017_quick_scarlet_spider",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1785307488678,
+      "tag": "0018_dark_omega_red",
+      "breakpoints": true
     }
   ]
 }

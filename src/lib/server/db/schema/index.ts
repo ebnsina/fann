@@ -22,4 +22,5 @@ export * from './salary';
 export * from './social';
 export * from './ai';
 export * from './notification';
+export * from './api';
 export * from './platform';

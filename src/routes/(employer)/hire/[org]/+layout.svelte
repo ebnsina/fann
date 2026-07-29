@@ -30,6 +30,7 @@
 				// not built yet, and a nav link to a 404 is worse than a missing link.
 				{ label: 'Team', href: `/hire/${orgSlug}/team`, icon: icons.candidates },
 				{ label: 'Company', href: `/hire/${orgSlug}/company`, icon: icons.companies },
+				{ label: 'API', href: `/hire/${orgSlug}/integrations`, icon: icons.launch },
 				{ label: 'Billing', href: `/hire/${orgSlug}/billing`, icon: icons.price }
 			]
 		}

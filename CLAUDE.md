@@ -1180,6 +1180,60 @@ first and unconditionally; the email only follows if that category is still on.
   copies of a page that already exists — and on a phone it covers what it
   describes.
 
+## The public API and webhooks
+
+`services/api-key.ts` and `services/webhook.ts`, exposed at `/api/v1` and managed
+from the employer's **API** page. It exists because a company that already keeps
+its openings on its own careers site, or announces things through whatever posts
+to its social accounts, should not have to retype any of it here.
+
+- **Only the hash of a key is stored**, like an invite in `team.ts` and a session
+  in `session.ts`. The plaintext is returned once from `issue` and the page says
+  so; a key this table could reveal is one a database backup hands to whoever
+  reads it. A test asserts the token never appears in the row.
+- **A key belongs to an organization, not a person.** Binding it to an account
+  would mean it stopped working the day they left — or kept their access after.
+  It does carry `createdByUserId`, because a write needs an author: a job posted
+  or a post written through the API is still something somebody is answerable
+  for, and `social.ts` keeps a user id on every post for exactly that reason. A
+  key whose creator closed their account cannot write at all.
+- **Keys are revoked, never deleted.** "This was live between these dates and
+  then somebody turned it off" is the question asked after an incident.
+- **There is no API path that publishes a job without a salary.** The endpoint
+  writes through the same service the form does, so `publishBlockers` applies.
+  `publish: false` is the default, which is the safe state for an integration
+  somebody is still testing.
+- **The API never serves a CV.** Files leave storage only through
+  `/files/[documentId]`, which re-checks authorization and the scan status on
+  every request; a second door would bypass both. Internal notes and scorecards
+  are absent for a related reason — they are in the owner-only export, and a
+  system pulling colleagues' private opinions into a spreadsheet is not something
+  this should make easy.
+- **No cookie fallback.** A browser session must never authenticate this API, or
+  any page on the internet could make somebody's browser read their employer's
+  applications by fetching a URL.
+
+Webhooks:
+
+- **Queuing and sending are separate.** `enqueue` only writes rows and never
+  throws, so a stranger's slow endpoint cannot sit inside an employer's
+  transaction or roll back a decision already committed. `dispatchPending` runs
+  from `/internal/maintenance`, like the other background work.
+- **HTTPS only, and never a private address.** A webhook is the product making a
+  request to a URL somebody typed, which is server-side request forgery if it is
+  not constrained — `localhost`, `10.x`, `192.168.x`, `172.16–31.x` and
+  `169.254.169.254` are all refused, and there is a test listing them. It is a
+  denylist of shapes rather than a DNS lookup on purpose: resolving here and
+  connecting later is a race the attacker controls.
+- **Signed over `timestamp.body`, not the body alone.** Signing the body alone
+  would make a captured delivery valid forever. There is a test that a signature
+  fails against a different timestamp.
+- **Every attempt is recorded**, same argument as `email_log`: a webhook that
+  silently stopped firing is indistinguishable from one nobody subscribed to.
+  Five attempts with a growing gap, then it stops — retrying a dead endpoint
+  forever is a queue that never drains and somebody else's server still being
+  hammered.
+
 ## End-to-end tests
 
 `e2e/hiring.e2e.ts` walks the whole product once in a browser: post a job →
