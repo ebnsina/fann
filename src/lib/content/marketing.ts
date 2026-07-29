@@ -399,6 +399,41 @@ export const COMPANY_COMPARISON: ComparisonRow[] = [
 	}
 ];
 
+/**
+ * What a candidate account actually does today, as a plain checklist.
+ *
+ * The company join page has carried an honest pair of lists — included, and not
+ * built yet — since it was written. This page did not, which made it the one
+ * marketing page in the product quietly holding itself to a lower standard than
+ * the one next to it.
+ */
+export const CANDIDATE_INCLUDED: string[] = [
+	'Every job on the board shows what it pays',
+	'One account to apply, and to hire later if you ever do',
+	'Several CVs, and you choose which one goes with each application',
+	'A timeline for every application, with the reason if the answer is no',
+	'Saved jobs nobody at the company can see',
+	'Interview times in your own timezone, with a calendar file',
+	'Offers you accept or decline yourself, in your own account',
+	'A profile you can keep private, or hide entirely',
+	'Notifications in the product, and email you can switch off per kind',
+	'What roles actually pay, from published ranges and reported salaries',
+	'Report your own pay without an account',
+	'Download everything we hold about you, and close your account yourself'
+];
+
+/**
+ * The gaps. Same rule as `COMPANY_ROADMAP`: this list only works if it shrinks,
+ * so shipping one of these moves the line into `CANDIDATE_INCLUDED` in the same
+ * change. A roadmap still promising what the product already does reads as a
+ * page nobody maintains, which is exactly the impression it exists to avoid.
+ */
+export const CANDIDATE_ROADMAP: string[] = [
+	'Email alerts when a job matching what you want is posted',
+	'Messaging a company from inside Fann',
+	'Job suggestions picked for you'
+];
+
 /** Shown as a plain checklist on the company join page. */
 export const COMPANY_INCLUDED: string[] = [
 	'Unlimited job posts',
@@ -468,6 +503,9 @@ export const CANDIDATE_PROMISES: Feature[] = [
 	{
 		icon: icons.notify,
 		title: 'Email you can switch off',
-		body: 'We write to you about your own applications. Everything else is something you turn on.'
+		// Worded from what `services/notification.ts` actually does. It used to say
+		// everything beyond applications was opt-in, which was never true — there is
+		// no marketing email to opt into, and the real control is per kind.
+		body: 'Only about your own applications, interviews and offers, and you can switch off each kind. Turning email off never hides the answer — it is still in the product.'
 	}
 ];

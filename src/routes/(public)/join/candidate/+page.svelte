@@ -5,6 +5,7 @@
 	import FeatureGrid from '#lib/components/app/marketing/FeatureGrid.svelte';
 	import JoinPanel from '#lib/components/app/marketing/JoinPanel.svelte';
 	import ScrollProgress from '#lib/components/app/marketing/ScrollProgress.svelte';
+	import Checklist from '#lib/components/app/marketing/Checklist.svelte';
 	import Section from '#lib/components/app/marketing/Section.svelte';
 	import SplitHero from '#lib/components/app/marketing/SplitHero.svelte';
 	import Steps from '#lib/components/app/marketing/Steps.svelte';
@@ -17,9 +18,11 @@
 	import Input from '#lib/components/ui/Input.svelte';
 	import {
 		CANDIDATE_FAQ,
+		CANDIDATE_INCLUDED,
 		CANDIDATE_JOIN_BENEFITS,
 		CANDIDATE_JOIN_STEPS,
-		CANDIDATE_PROMISES
+		CANDIDATE_PROMISES,
+		CANDIDATE_ROADMAP
 	} from '#lib/content/marketing';
 	import { icons } from '#lib/design/icons';
 	import { landingStats } from '../../landing.remote';
@@ -155,6 +158,31 @@
 	lead="A CV is a list of everywhere you have worked and how to reach you. It should not end up in a database you never agreed to."
 >
 	<FeatureGrid features={CANDIDATE_PROMISES} />
+</Section>
+
+<!-- What it does, and what it does not -------------------------------------- -->
+<Section eyebrow="What you get" title="Everything a Fann account does">
+	<div class="grid gap-px border border-border bg-border lg:grid-cols-2">
+		<div class="flex flex-col gap-4 bg-surface p-(--fann-space-panel)">
+			<h3 class="text-base font-semibold text-text">Working today</h3>
+			<Checklist items={CANDIDATE_INCLUDED} />
+		</div>
+
+		<!--
+			The gaps, beside the good parts rather than left off. The company join page
+			has carried this pair since it was written; this page had only the good
+			half, which made it the one marketing page here quietly held to a lower
+			standard than the one next to it.
+		-->
+		<div class="flex flex-col gap-4 bg-surface p-(--fann-space-panel)">
+			<h3 class="text-base font-semibold text-text">Not built yet</h3>
+			<Checklist items={CANDIDATE_ROADMAP} tone="planned" />
+			<p class="mt-auto text-sm text-text-muted">
+				These are the things people ask for most. They are not here yet, and we would rather you
+				knew that before you signed up than found out looking for them.
+			</p>
+		</div>
+	</div>
 </Section>
 
 <!-- FAQ -------------------------------------------------------------------- -->
