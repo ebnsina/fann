@@ -11,7 +11,11 @@
 	import Select from '#lib/components/ui/Select.svelte';
 	import Skeleton from '#lib/components/ui/Skeleton.svelte';
 	import { icons } from '#lib/design/icons';
-	import { label } from '#lib/utils/format';
+	import {
+		EMPLOYMENT_TYPE_OPTIONS,
+		EXPERIENCE_LEVEL_OPTIONS,
+		WORK_MODE_OPTIONS
+	} from '#lib/schemas/job';
 	import { findJobs } from './jobs.remote';
 
 	type Facet = { value: string; count: number };
@@ -73,11 +77,47 @@
 	// Writable derived: tracks the URL, but the user can type over it freely.
 	let searchTerm = $derived(q);
 
+	/**
+	 * Every option, always, in a fixed order — never only the ones with matches.
+	 *
+	 * The server counts each group with the other two applied but not its own, so
+	 * an unticked box means "this many more if you add this". What it cannot do is
+	 * return a row for a value nothing matches, and dropping those from the list
+	 * made the sidebar change height as you filtered: tick something under
+	 * Employment and a Work mode option could vanish, taking every group below it
+	 * up the page while the pointer was still moving. So the canonical list is the
+	 * one rendered, and a value with no matches is shown at zero and disabled
+	 * rather than removed.
+	 *
+	 * The order is the canonical order too. Sorting by count looks tidier on the
+	 * first load and then reshuffles under the cursor every time a number changes,
+	 * which is the same complaint in a different shape.
+	 */
 	const FACET_GROUPS = [
-		{ key: 'workMode', title: 'Work mode', facets: () => results.facets.workMode },
-		{ key: 'employmentType', title: 'Employment', facets: () => results.facets.employmentType },
-		{ key: 'experienceLevel', title: 'Experience', facets: () => results.facets.experienceLevel }
+		{
+			key: 'workMode',
+			title: 'Work mode',
+			options: WORK_MODE_OPTIONS,
+			facets: () => results.facets.workMode
+		},
+		{
+			key: 'employmentType',
+			title: 'Employment',
+			options: EMPLOYMENT_TYPE_OPTIONS,
+			facets: () => results.facets.employmentType
+		},
+		{
+			key: 'experienceLevel',
+			title: 'Experience',
+			options: EXPERIENCE_LEVEL_OPTIONS,
+			facets: () => results.facets.experienceLevel
+		}
 	];
+
+	/** Count for one value, or zero when nothing matches it. */
+	function countFor(facets: Facet[], value: string): number {
+		return facets.find((facet) => facet.value === value)?.count ?? 0;
+	}
 
 	const activeCount = $derived(
 		selected.workModes.length + selected.employmentTypes.length + selected.experienceLevels.length
@@ -97,7 +137,13 @@
 <div class="mx-auto flex max-w-6xl gap-8 p-(--fann-space-page)">
 	<!-- Filters ---------------------------------------------------------- -->
 	<aside class="hidden w-56 shrink-0 flex-col gap-6 lg:flex" aria-label="Filters">
-		<div class="flex items-center justify-between">
+		<!--
+			Fixed height, because "Clear" appears only when something is selected and
+			the link is two pixels taller than the heading beside it. Two pixels is
+			enough to shift every group below on the first tick, which is the same
+			complaint as the vanishing options, just smaller.
+		-->
+		<div class="flex h-5 items-center justify-between">
 			<h2 class="text-2xs font-medium tracking-wide text-text-subtle uppercase">Filters</h2>
 			{#if activeCount > 0}
 				<button
@@ -117,21 +163,32 @@
 
 		{#each FACET_GROUPS as group (group.key)}
 			{@const facets = group.facets() as Facet[]}
-			{#if facets.length > 0}
-				<fieldset class="flex flex-col gap-2.5">
-					<legend class="mb-1 text-xs font-medium text-text">{group.title}</legend>
-					{#each facets as facet (facet.value)}
-						<div class="flex items-center justify-between gap-2">
-							<Checkbox
-								label={label(facet.value)}
-								checked={params.getAll(group.key).includes(facet.value)}
-								onCheckedChange={() => toggleFacet(group.key, facet.value)}
-							/>
-							<span class="font-mono text-2xs text-text-subtle tabular-nums">{facet.count}</span>
-						</div>
-					{/each}
-				</fieldset>
-			{/if}
+			<fieldset class="flex flex-col gap-2.5">
+				<legend class="mb-1 text-xs font-medium text-text">{group.title}</legend>
+				{#each group.options as option (option.value)}
+					{@const count = countFor(facets, option.value)}
+					{@const checked = params.getAll(group.key).includes(option.value)}
+					<!--
+						A zero stays on the page, greyed and unclickable. Removing it is what
+						made the column jump; disabling it says "nothing here matches that"
+						without moving anything. Still clickable while ticked, or you could
+						filter yourself into a corner you cannot get out of.
+					-->
+					<div
+						class="flex items-center justify-between gap-2 {count === 0 && !checked
+							? 'opacity-45'
+							: ''}"
+					>
+						<Checkbox
+							label={option.label}
+							{checked}
+							disabled={count === 0 && !checked}
+							onCheckedChange={() => toggleFacet(group.key, option.value)}
+						/>
+						<span class="font-mono text-2xs text-text-subtle tabular-nums">{count}</span>
+					</div>
+				{/each}
+			</fieldset>
 		{/each}
 	</aside>
 

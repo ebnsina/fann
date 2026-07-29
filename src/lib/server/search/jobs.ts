@@ -97,15 +97,29 @@ export async function searchJobs(filters: JobSearchFilters = {}): Promise<JobSea
 			sql`, `
 		);
 
-	if (filters.workModes?.length) {
-		conditions.push(sql`j.work_mode in (${anyOf(filters.workModes)})`);
-	}
-	if (filters.employmentTypes?.length) {
-		conditions.push(sql`j.employment_type in (${anyOf(filters.employmentTypes)})`);
-	}
-	if (filters.experienceLevels?.length) {
-		conditions.push(sql`j.experience_level in (${anyOf(filters.experienceLevels)})`);
-	}
+	/*
+	 * The three checkbox groups are held apart from the rest of the filter, because
+	 * a facet's own selection must not narrow its own counts.
+	 *
+	 * Counting every facet over the fully filtered set — which is what this used to
+	 * do — means ticking "on-site" leaves the work-mode group with exactly one row
+	 * in it, so "hybrid" and "remote" vanish from the sidebar. Two things go wrong.
+	 * The group collapses from three rows to one and everything below it jumps up
+	 * the page. And, worse, there is then no way to *add* remote to the selection:
+	 * the checkbox you would need is gone, so a multi-select group can only ever
+	 * hold one value unless you clear it and start again.
+	 *
+	 * So each group is counted with the other two applied and its own left off,
+	 * which is what makes the number beside an unticked box mean "this many more if
+	 * you add this". The results and the total still use all three.
+	 */
+	const groupFilter = (column: string, values: string[] | undefined): SQL =>
+		values?.length ? sql.raw(column).append(sql` in (${anyOf(values)})`) : sql`true`;
+
+	const byWorkMode = groupFilter('work_mode', filters.workModes);
+	const byEmployment = groupFilter('employment_type', filters.employmentTypes);
+	const byExperience = groupFilter('experience_level', filters.experienceLevels);
+
 	if (filters.salaryMin !== undefined) {
 		conditions.push(sql`j.salary_max >= ${filters.salaryMin}`);
 	}
@@ -159,7 +173,7 @@ export async function searchJobs(filters: JobSearchFilters = {}): Promise<JobSea
 		total: number;
 		facets: JobSearchResponse['facets'];
 	}>(sql`
-		with matched as (
+		with pool as (
 			select
 				j.id, j.slug, j.title, j.work_mode, j.employment_type, j.experience_level,
 				j.salary_min, j.salary_max, j.salary_currency, j.salary_period,
@@ -172,20 +186,36 @@ export async function searchJobs(filters: JobSearchFilters = {}): Promise<JobSea
 			join organizations o on o.id = c.organization_id
 			where ${where}
 		),
+		matched as (
+			select * from pool
+			where ${byWorkMode} and ${byEmployment} and ${byExperience}
+		),
 		counted as (select count(*)::int as total from matched),
 		facets as (
 			select jsonb_build_object(
 				'workMode', (
 					select coalesce(jsonb_agg(jsonb_build_object('value', work_mode, 'count', n) order by n desc), '[]'::jsonb)
-					from (select work_mode, count(*)::int as n from matched group by work_mode) w
+					from (
+						select work_mode, count(*)::int as n from pool
+						where ${byEmployment} and ${byExperience}
+						group by work_mode
+					) w
 				),
 				'employmentType', (
 					select coalesce(jsonb_agg(jsonb_build_object('value', employment_type, 'count', n) order by n desc), '[]'::jsonb)
-					from (select employment_type, count(*)::int as n from matched group by employment_type) e
+					from (
+						select employment_type, count(*)::int as n from pool
+						where ${byWorkMode} and ${byExperience}
+						group by employment_type
+					) e
 				),
 				'experienceLevel', (
 					select coalesce(jsonb_agg(jsonb_build_object('value', experience_level, 'count', n) order by n desc), '[]'::jsonb)
-					from (select experience_level, count(*)::int as n from matched group by experience_level) x
+					from (
+						select experience_level, count(*)::int as n from pool
+						where ${byWorkMode} and ${byEmployment}
+						group by experience_level
+					) x
 				)
 			) as facets
 		)

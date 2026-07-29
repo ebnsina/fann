@@ -81,15 +81,46 @@ describe.skipIf(!seeded)('job search', () => {
 		}
 	});
 
-	it('counts facets over the filtered set, not the whole table', async () => {
+	/**
+	 * This used to assert the opposite — that filtering to remote left exactly one
+	 * work-mode facet — and that assertion was the bug.
+	 *
+	 * Counting a group over the fully filtered set removes every other option in
+	 * that group from the sidebar, so the column changes height as you filter and,
+	 * worse, there is no longer a checkbox for the value you would need to add. A
+	 * multi-select group could only ever hold one value.
+	 */
+	it('keeps a group’s own options counted when that group is filtered', async () => {
 		const all = await searchJobs({});
 		const remote = await searchJobs({ workModes: ['remote'] });
 
 		const remoteFacet = remote.facets.workMode.find((f) => f.value === 'remote');
 		expect(remoteFacet?.count).toBe(remote.total);
-		// Narrowing to remote must not leave the other modes counted.
-		expect(remote.facets.workMode).toHaveLength(1);
 		expect(remote.total).toBeLessThan(all.total);
+
+		// The other modes are still offered, still counted, and unaffected by the
+		// work-mode selection — which is what makes "add hybrid too" possible.
+		expect(remote.facets.workMode.length).toBeGreaterThan(1);
+		for (const mode of ['onsite', 'hybrid'] as const) {
+			expect(remote.facets.workMode.find((f) => f.value === mode)?.count).toBe(
+				all.facets.workMode.find((f) => f.value === mode)?.count
+			);
+		}
+	});
+
+	it('still narrows every other group', async () => {
+		const all = await searchJobs({});
+		const remote = await searchJobs({ workModes: ['remote'] });
+
+		// A group that is not the one being filtered must reflect the filter — the
+		// number beside "Full-time" has to mean full-time *remote* jobs, or it is
+		// describing a result nobody asked for.
+		const total = (facets: { count: number }[]) =>
+			facets.reduce((sum, facet) => sum + facet.count, 0);
+
+		expect(total(remote.facets.employmentType)).toBe(remote.total);
+		expect(total(remote.facets.experienceLevel)).toBe(remote.total);
+		expect(total(remote.facets.employmentType)).toBeLessThan(total(all.facets.employmentType));
 	});
 
 	it('sorts by salary when asked', async () => {
