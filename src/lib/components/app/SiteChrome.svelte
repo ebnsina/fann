@@ -138,6 +138,14 @@
 							<span class="w-8"></span>
 						{/snippet}
 					</svelte:boundary>
+					{#if user.platformAdmin}
+						<!--
+							Staff only, and only navigation — every function behind it checks
+							again in the service, because this link being absent protects
+							nothing against somebody typing the URL.
+						-->
+						<Button href="/admin" variant="ghost" size="sm">Platform</Button>
+					{/if}
 					<Button href="/me/applications" variant="ghost" size="sm">Applications</Button>
 					<Button href="/hire" size="sm">
 						Hire

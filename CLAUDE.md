@@ -244,6 +244,33 @@ and never fires for a report that stops at two.
   needs to see exactly what was written, including anything formatting would
   swallow.
 
+### The platform console
+
+`services/admin.ts` is the rest of `(admin)`: an overview, companies, jobs,
+people and failed email. **Read-only except one action**, and that is the design
+rather than an unfinished state. An admin screen accumulates buttons until
+somebody can quietly change anything about anyone, and the first thing an
+attacker holding a staff session looks for is the lever that grants more access.
+
+- **`assertStaff` runs inside every function**, never in the route group, and
+  denials are not-found — same as `moderation.ts`, for the same reasons.
+- **Nothing here writes `platformAdmin`.** There is a test that fails if a
+  function whose name mentions admin/staff/role/promote appears in the module.
+  The seed sets it with a hand-written insert, which is the only way it is meant
+  to be set at all.
+- **People is a search, never a browsable list.** A term under two characters
+  returns nothing rather than everybody; an endpoint that pages through every
+  account is an export of the user table waiting to happen.
+- **The one write is taking a listing off the board, and it is reversible.** The
+  job row, its applications and their timelines are untouched, so the action can
+  be undone and can be shown to have been wrong. Restoring puts it back as a
+  **draft** — re-publishing somebody else's listing on their behalf is theirs to
+  decide.
+- The overview is deliberately not a vanity dashboard. "Left waiting past 14
+  days" and "email that failed this week" are the two figures somebody could act
+  on, and both are invisible from everywhere else in the product; sign-up counts
+  are context underneath them.
+
 ## Markdown
 
 All user-supplied markdown renders through `#lib/components/ui/Markdown.svelte`,

@@ -254,9 +254,14 @@ async function main() {
 		outputLen: 32
 	});
 
+	// Platform staff as well as a company owner, so the console at /admin is
+	// reviewable after a reseed. Same reasoning as the response characters below:
+	// a screen with nothing on it cannot be checked. `platform_admin` still has no
+	// path from the product — this is a hand-written insert, which is the only way
+	// it is ever meant to be set.
 	const [owner] = await sql`
-		insert into users (email, name, password_hash, email_verified_at)
-		values ('owner@seed.test', 'Seed Owner', ${passwordHash}, now())
+		insert into users (email, name, password_hash, email_verified_at, platform_admin)
+		values ('owner@seed.test', 'Seed Owner', ${passwordHash}, now(), true)
 		returning id`;
 
 	console.log('Seeding candidates…');
@@ -507,7 +512,7 @@ async function main() {
 	console.log(`\n✓ ${COMPANIES.length} companies, ${count} published jobs`);
 	console.log(`  ${submissions.length} reported salaries`);
 	console.log(`  ${transitions.length} moves across the hiring boards`);
-	console.log('  Sign in as owner@seed.test / a-long-enough-password');
+	console.log('  Sign in as owner@seed.test / a-long-enough-password (also platform staff)');
 
 	await sql.end();
 }

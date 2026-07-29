@@ -30,7 +30,10 @@ export const currentUser = query(async () => {
 		id: locals.user.id,
 		name: locals.user.name,
 		email: locals.user.email,
-		emailVerified: Boolean(locals.user.emailVerifiedAt)
+		emailVerified: Boolean(locals.user.emailVerifiedAt),
+		// Draws the Platform link and nothing else. Every function behind it checks
+		// again in the service, because a hidden link protects nothing on its own.
+		platformAdmin: locals.user.platformAdmin
 	};
 });
 
