@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { createOrganizationSchema } from '#lib/schemas/organization';
+	import Form from '#lib/components/ui/Form.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
 	import FormActions from '#lib/components/ui/FormActions.svelte';
 	import Card from '#lib/components/ui/Card.svelte';
@@ -14,6 +16,9 @@
 	// Typed on the company join page before confirming their email. Pre-filling it
 	// here means nobody types their own company name twice.
 	const suggestedName = $derived(await pendingCompanyName());
+
+	// Client-side validation using the same schema the server enforces.
+	createOrganization.preflight(createOrganizationSchema);
 </script>
 
 <svelte:head><title>Hire · Fann</title></svelte:head>
@@ -53,7 +58,7 @@
 	{/if}
 
 	<Card title="Set up your company" description="You can change any of this later.">
-		<form {...createOrganization} class="flex flex-col gap-4">
+		<Form form={createOrganization} class="flex flex-col gap-4">
 			<FormError issues={createOrganization.fields.allIssues()} />
 
 			<Field label="Company name" issues={createOrganization.fields.name.issues()} required>
@@ -85,6 +90,6 @@
 					Set up company
 				</Button>
 			</FormActions>
-		</form>
+		</Form>
 	</Card>
 </div>

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { joinCompanySchema } from '#lib/schemas/join';
+	import Form from '#lib/components/ui/Form.svelte';
 	import Checklist from '#lib/components/app/marketing/Checklist.svelte';
 	import Comparison from '#lib/components/app/marketing/Comparison.svelte';
 	import Faq from '#lib/components/app/marketing/Faq.svelte';
@@ -42,6 +44,9 @@
 		'Everyone who applies lands in one shared list',
 		'Show the pay and get a shorter, better shortlist'
 	];
+
+	// Client-side validation using the same schema the server enforces.
+	form.preflight(joinCompanySchema);
 </script>
 
 <svelte:head>
@@ -84,7 +89,7 @@
 			title="Create your account"
 			note="Takes about a minute. We will email you a link to confirm it is you."
 		>
-			<form {...form} class="flex flex-col gap-4">
+			<Form {form} class="flex flex-col gap-4">
 				<FormError issues={form.fields.allIssues()} />
 
 				<Field label="Your name" issues={form.fields.name.issues()}>
@@ -139,7 +144,7 @@
 				<p class="text-xs text-text-subtle">
 					No card needed. Nothing appears publicly until you write and publish a job.
 				</p>
-			</form>
+			</Form>
 		</JoinPanel>
 	{/snippet}
 </SplitHero>

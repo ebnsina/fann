@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Form from '#lib/components/ui/Form.svelte';
 	import { page } from '$app/state';
 	import Button from '#lib/components/ui/Button.svelte';
 	import FormActions from '#lib/components/ui/FormActions.svelte';
@@ -66,7 +67,7 @@
 			</div>
 		</Card>
 	{:else}
-		<form {...applyToJob} enctype="multipart/form-data" class="flex flex-col gap-6">
+		<Form form={applyToJob} enctype="multipart/form-data" class="flex flex-col gap-6">
 			<FormError issues={applyToJob.fields.allIssues()} />
 
 			<input {...applyToJob.fields.jobId.as('hidden', job.id)} />
@@ -126,6 +127,6 @@
 					Send application
 				</Button>
 			</FormActions>
-		</form>
+		</Form>
 	{/if}
 </div>

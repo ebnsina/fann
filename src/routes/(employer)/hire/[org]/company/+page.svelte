@@ -1,4 +1,6 @@
 <script lang="ts">
+	import * as v from 'valibot';
+	import Form from '#lib/components/ui/Form.svelte';
 	import { page } from '$app/state';
 	import Button from '#lib/components/ui/Button.svelte';
 	import Card from '#lib/components/ui/Card.svelte';
@@ -12,7 +14,7 @@
 	import Textarea from '#lib/components/ui/Textarea.svelte';
 	import { toast } from '#lib/components/ui/toast.svelte';
 	import { icons } from '#lib/design/icons';
-	import { SIZE_OPTIONS } from '#lib/schemas/company';
+	import { SIZE_OPTIONS, companyProfileSchema } from '#lib/schemas/company';
 	import {
 		checkDomain,
 		claimDomain,
@@ -93,6 +95,11 @@
 			saving = false;
 		}
 	}
+
+	// Client-side validation using the same schema the server enforces. The remote
+	// takes the profile nested beside the org it belongs to, so preflight has to be
+	// given that shape rather than the profile schema on its own.
+	saveCompanyProfile.preflight(v.object({ orgSlug: v.string(), profile: companyProfileSchema }));
 </script>
 
 <svelte:head><title>Company settings · Fann</title></svelte:head>
@@ -105,7 +112,7 @@
 
 	{#if company}
 		<Card title="Public profile" description="What a candidate reads before deciding to apply.">
-			<form {...saveCompanyProfile} class="flex flex-col gap-4">
+			<Form form={saveCompanyProfile} class="flex flex-col gap-4">
 				<FormError issues={saveCompanyProfile.fields.allIssues()} />
 				<input {...saveCompanyProfile.fields.orgSlug.as('hidden', orgSlug)} />
 
@@ -193,7 +200,7 @@
 						{/if}
 					{/snippet}
 				</FormActions>
-			</form>
+			</Form>
 		</Card>
 
 		<Card

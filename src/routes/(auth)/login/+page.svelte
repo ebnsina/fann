@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { loginSchema } from '#lib/schemas/auth';
+	import Form from '#lib/components/ui/Form.svelte';
 	import { page } from '$app/state';
 	import Button from '#lib/components/ui/Button.svelte';
 	import FormActions from '#lib/components/ui/FormActions.svelte';
@@ -10,6 +12,9 @@
 	// See the note in signup/+page.svelte for why `.preflight()` is not used yet.
 
 	const justReset = $derived(page.url.searchParams.has('reset'));
+
+	// Client-side validation using the same schema the server enforces.
+	form.preflight(loginSchema);
 </script>
 
 <svelte:head><title>Sign in · Fann</title></svelte:head>
@@ -26,7 +31,7 @@
 		</p>
 	{/if}
 
-	<form {...form} class="flex flex-col gap-4">
+	<Form {form} class="flex flex-col gap-4">
 		<FormError issues={form.fields.allIssues()} />
 
 		<Field label="Email" issues={form.fields.email.issues()}>
@@ -54,7 +59,7 @@
 		<FormActions>
 			<Button type="submit" variant="primary" size="lg" loading={form.pending > 0}>Sign in</Button>
 		</FormActions>
-	</form>
+	</Form>
 
 	<div class="flex items-center justify-between text-sm">
 		<a href="/reset" class="text-text-muted underline-offset-2 hover:text-text hover:underline">

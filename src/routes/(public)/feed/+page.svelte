@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Form from '#lib/components/ui/Form.svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import PostCard from '#lib/components/app/PostCard.svelte';
@@ -60,7 +61,7 @@
 			title="Post something"
 			description="Anyone can read this, including people you work with."
 		>
-			<form {...createPost} class="flex flex-col gap-4">
+			<Form form={createPost} class="flex flex-col gap-4">
 				<FormError issues={fields.allIssues()} />
 
 				<Field label="Your post" issues={fields.body.issues()} hint="Markdown is supported.">
@@ -89,7 +90,7 @@
 				<FormActions>
 					<Button type="submit" variant="primary">Post</Button>
 				</FormActions>
-			</form>
+			</Form>
 		</Card>
 	{/if}
 

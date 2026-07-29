@@ -60,11 +60,20 @@ The implementation plan lives at `~/.claude/plans/plan-for-complete-comprehensiv
   dependency on the command's own state, so the effect re-runs and hammers the
   endpoint forever. Wrap in `untrack()` plus a ran-once guard (see
   `routes/(auth)/verify/+page.svelte`).
-- **`form.preflight()` is not usable in kit@3.0.0-next.12.** Kit's focusout handler
-  throws `state_unsafe_mutation`, so fields are never marked touched and `issues()`
-  filters everything out — the form silently refuses to submit with no message.
-  Verified against a bare docs-pattern form, so it is not our wrappers. Server-side
-  validation covers the same schemas; re-add preflight when it is fixed.
+- **Every `<form>` needs `novalidate`** — which is why every form goes through
+  `Form.svelte` rather than a bare element. The browser runs its own constraint
+  validation _before_ dispatching `submit`, and an `<input type="email">` holding
+  something that is not an email fails it. When it fails **no submit event is
+  dispatched at all**, so Kit's handler never runs, the preflight schema is never
+  checked, and no issue is ever shown. The button does nothing, silently.
+
+  This was recorded here for a while as "`form.preflight()` is broken in
+  kit@3.0.0-next.12, it throws `state_unsafe_mutation` from the focusout handler".
+  That was wrong on both counts: nothing throws, and preflight works correctly the
+  moment the native layer stops intercepting. The misdiagnosis survived because the
+  bare form used to test it typed its email field as `text`, which has no native
+  validation to trip over. `Form.svelte.spec.ts` fails if the attribute goes.
+
 - **`query(...).refresh()` is keyed by its argument.** `posts()` and
   `posts({ followingOnly: false, before: '' })` are different cache entries, so a
   mutation that refreshed the bare call left the page rendering stale data — likes
@@ -559,7 +568,11 @@ server-side that depends on it cannot know which.
 - **A wrong password is `invalid()`, not `error()`.** `error(401)` unmounts the
   page and replaces it with the error screen, losing the form and everything typed
   into it. `invalid('…')` comes back as a form-level issue and renders in place.
-- Client-side `preflight()` is disabled project-wide — see the known trap above.
+- **Every form is a `Form.svelte`, never a bare `<form>`**, and every form whose
+  input has a shared schema calls `preflight(schema)` — the same definition the
+  server enforces, so what somebody is told while typing cannot drift from what
+  will be accepted. The wrapper exists for `novalidate`; see the trap above for
+  what happens without it.
 
 ## Legal and about pages
 

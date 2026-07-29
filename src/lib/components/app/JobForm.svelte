@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Form from '#lib/components/ui/Form.svelte';
 	import type { RemoteForm } from '@sveltejs/kit';
 	import Button from '#lib/components/ui/Button.svelte';
 	import FormActions from '#lib/components/ui/FormActions.svelte';
@@ -129,7 +130,7 @@
 	let salaryMaxValue = $derived(initial?.salaryMax?.toString() ?? '');
 </script>
 
-<form {...form} class="flex flex-col gap-6">
+<Form {form} class="flex flex-col gap-6">
 	<FormError issues={form.fields.allIssues()} />
 
 	<input {...form.fields.orgSlug.as('hidden', orgSlug)} />
@@ -355,4 +356,4 @@
 			{submitLabel}
 		</Button>
 	</FormActions>
-</form>
+</Form>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Form from '#lib/components/ui/Form.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
 	import Card from '#lib/components/ui/Card.svelte';
 	import Field from '#lib/components/ui/Field.svelte';
@@ -8,11 +9,14 @@
 	import Input from '#lib/components/ui/Input.svelte';
 	import Textarea from '#lib/components/ui/Textarea.svelte';
 	import { icons } from '#lib/design/icons';
-	import { VISIBILITY_OPTIONS } from '#lib/schemas/profile';
+	import { VISIBILITY_OPTIONS, profileSchema } from '#lib/schemas/profile';
 	import { myProfile, saveProfile } from '../../profile.remote';
 
 	const profile = $derived(await myProfile());
 	const fields = $derived(saveProfile.fields);
+
+	// Client-side validation using the same schema the server enforces.
+	saveProfile.preflight(profileSchema);
 </script>
 
 <svelte:head><title>Your profile · Fann</title></svelte:head>
@@ -26,7 +30,7 @@
 		</p>
 	</div>
 
-	<form {...saveProfile} class="flex flex-col gap-6">
+	<Form form={saveProfile} class="flex flex-col gap-6">
 		<FormError issues={fields.allIssues()} />
 
 		<Card title="About you" description="What a company reads first, if you let them.">
@@ -203,5 +207,5 @@
 				{/if}
 			{/snippet}
 		</FormActions>
-	</form>
+	</Form>
 </div>

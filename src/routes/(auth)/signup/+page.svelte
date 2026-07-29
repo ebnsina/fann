@@ -1,17 +1,17 @@
 <script lang="ts">
+	import Form from '#lib/components/ui/Form.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
 	import FormActions from '#lib/components/ui/FormActions.svelte';
 	import Field from '#lib/components/ui/Field.svelte';
 	import FormError from '#lib/components/ui/FormError.svelte';
 	import Input from '#lib/components/ui/Input.svelte';
+	import { signupSchema } from '#lib/schemas/auth';
 	import { signup as form } from '../auth.remote';
 
-	// `.preflight(signupSchema)` belongs here — it would validate client-side using
-	// the same schema the server enforces. It is left off because in kit@3.0.0-next.12
-	// the touched-tracking that gates issue display throws `state_unsafe_mutation`
-	// from Kit's own focusout handler, so preflight silently blocks submission
-	// without ever showing why. Server-side validation covers the same rules; add
-	// preflight back once that lands. Verified against a bare docs-pattern form.
+	// The same schema the server enforces, checked in the browser first. One
+	// definition, so what somebody is told while typing cannot drift from what the
+	// server will accept.
+	form.preflight(signupSchema);
 </script>
 
 <svelte:head><title>Create an account · Fann</title></svelte:head>
@@ -24,7 +24,7 @@
 		</p>
 	</div>
 
-	<form {...form} class="flex flex-col gap-4">
+	<Form {form} class="flex flex-col gap-4">
 		<FormError issues={form.fields.allIssues()} />
 
 		<Field label="Name" issues={form.fields.name.issues()}>
@@ -59,7 +59,7 @@
 				Create account
 			</Button>
 		</FormActions>
-	</form>
+	</Form>
 
 	<p class="text-sm text-text-muted">
 		Already have an account?

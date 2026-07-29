@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Form from '#lib/components/ui/Form.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
 	import Card from '#lib/components/ui/Card.svelte';
 	import ConfirmDialog from '#lib/components/ui/ConfirmDialog.svelte';
@@ -54,7 +55,7 @@
 	</div>
 
 	<Card title="Add a CV" description="PDF, Word or plain text, up to 10 MB.">
-		<form {...uploadResume} class="flex flex-col gap-4">
+		<Form form={uploadResume} class="flex flex-col gap-4">
 			<FormError issues={fields.allIssues()} />
 
 			<Field label="File" issues={fields.file.issues()} required>
@@ -79,7 +80,7 @@
 					Upload
 				</Button>
 			</FormActions>
-		</form>
+		</Form>
 	</Card>
 
 	{#if documents.length === 0}

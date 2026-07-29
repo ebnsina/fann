@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Form from '#lib/components/ui/Form.svelte';
 	import { page } from '$app/state';
 	import Button from '#lib/components/ui/Button.svelte';
 	import FormActions from '#lib/components/ui/FormActions.svelte';
@@ -22,7 +23,7 @@
 			<p class="text-sm text-text-muted">Every other device will be signed out once you set it.</p>
 		</div>
 
-		<form {...resetPassword} class="flex flex-col gap-4">
+		<Form form={resetPassword} class="flex flex-col gap-4">
 			<FormError issues={resetPassword.fields.allIssues()} />
 
 			<input {...resetPassword.fields.token.as('hidden', token)} />
@@ -46,7 +47,7 @@
 					Set password
 				</Button>
 			</FormActions>
-		</form>
+		</Form>
 	</div>
 {:else if requestPasswordReset.result?.sent}
 	<div class="flex flex-col gap-2">
@@ -62,7 +63,7 @@
 			<p class="text-sm text-text-muted">We will email you a link to set a new one.</p>
 		</div>
 
-		<form {...requestPasswordReset} class="flex flex-col gap-4">
+		<Form form={requestPasswordReset} class="flex flex-col gap-4">
 			<FormError issues={requestPasswordReset.fields.allIssues()} />
 
 			<Field label="Email" issues={requestPasswordReset.fields.email.issues()}>
@@ -86,7 +87,7 @@
 					Send reset link
 				</Button>
 			</FormActions>
-		</form>
+		</Form>
 
 		<a
 			href="/login"

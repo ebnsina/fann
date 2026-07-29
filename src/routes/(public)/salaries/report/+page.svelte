@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { salaryReportSchema } from '#lib/schemas/salary';
+	import Form from '#lib/components/ui/Form.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
 	import Card from '#lib/components/ui/Card.svelte';
 	import Field from '#lib/components/ui/Field.svelte';
@@ -23,6 +25,9 @@
 		{ value: '', label: 'Rather not say' },
 		...options.locations.map((row) => ({ value: row.id, label: `${row.city}, ${row.country}` }))
 	]);
+
+	// Client-side validation using the same schema the server enforces.
+	reportSalary.preflight(salaryReportSchema);
 </script>
 
 <svelte:head>
@@ -80,7 +85,7 @@
 		</div>
 	{/if}
 
-	<form {...reportSalary} class="flex flex-col gap-6">
+	<Form form={reportSalary} class="flex flex-col gap-6">
 		<FormError issues={fields.allIssues()} />
 
 		<Card title="The job" description="Enough to group it with others like it.">
@@ -179,7 +184,7 @@
 		<FormActions>
 			<Button type="submit" variant="primary">Report it</Button>
 		</FormActions>
-	</form>
+	</Form>
 
 	<!--
 		Said here rather than only in a policy. Somebody typing their salary into a

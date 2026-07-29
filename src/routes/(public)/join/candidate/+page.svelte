@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { signupSchema } from '#lib/schemas/auth';
+	import Form from '#lib/components/ui/Form.svelte';
 	import Faq from '#lib/components/app/marketing/Faq.svelte';
 	import FeatureGrid from '#lib/components/app/marketing/FeatureGrid.svelte';
 	import JoinPanel from '#lib/components/app/marketing/JoinPanel.svelte';
@@ -35,6 +37,9 @@
 		'Every application gets an answer, with a reason',
 		'Free, and we never sell your details'
 	];
+
+	// Client-side validation using the same schema the server enforces.
+	form.preflight(signupSchema);
 </script>
 
 <svelte:head>
@@ -78,7 +83,7 @@
 			title="Create your account"
 			note="Takes about a minute, and you do not need your CV to hand yet."
 		>
-			<form {...form} class="flex flex-col gap-4">
+			<Form {form} class="flex flex-col gap-4">
 				<FormError issues={form.fields.allIssues()} />
 
 				<Field label="Your name" issues={form.fields.name.issues()}>
@@ -122,7 +127,7 @@
 				<p class="text-xs text-text-subtle">
 					Free, and your profile stays private until you say otherwise.
 				</p>
-			</form>
+			</Form>
 		</JoinPanel>
 	{/snippet}
 </SplitHero>
