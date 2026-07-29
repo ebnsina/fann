@@ -1,0 +1,464 @@
+/* ============================================================================
+   Design tokens — the single source of truth for the whole product.
+   ============================================================================
+
+   Four layers, each derived from the one above. Only ever edit layer 1.
+
+     1. KNOBS      A handful of values that define the look. Change these.
+     2. RAMPS      Colour scales computed from the knobs. Never edit by hand.
+     3. SEMANTIC   What each colour *means*, per theme. Components use these.
+     4. UTILITIES  The `@theme` mapping that turns tokens into Tailwind classes.
+
+   Everything raw is prefixed `--fann-` so it can never collide with a Tailwind
+   theme namespace, and so a search for `--fann-` shows the entire system.
+
+   Common changes, all one-liners in layer 1:
+
+     Different brand colour  →  --fann-brand-hue          (0–360)
+     Softer / louder brand   →  --fann-brand-chroma       (0 = grey, 1 = full)
+     Rounder / flatter UI    →  --fann-radius             (0 squares everything off)
+     Pill buttons / avatars  →  --fann-radius-full
+     Warmer / cooler greys   →  --fann-neutral-hue
+     Roomier or tighter UI   →  --fann-space-*            (padding rhythm)
+     Taller / shorter inputs →  --fann-control-step       (control heights)
+     Faster / slower motion  →  --fann-duration-*
+
+   Components must reference semantic tokens only — `bg-surface`, `text-text-muted`,
+   `border-border`, `bg-accent`. Never a ramp step (`--fann-gray-500`) and never a
+   literal colour. That rule is what makes every knob above actually work, and what
+   makes dark mode cost nothing.
+   ========================================================================= */
+
+/* ---------------------------------------------------------------------------
+   1. KNOBS — the entire design system's configuration
+   --------------------------------------------------------------------------- */
+:root {
+	/* Brand ------------------------------------------------------------------ */
+	/* Hue in OKLCH degrees. 277 = indigo. 250 = blue, 300 = violet, 22 = red. */
+	--fann-brand-hue: 277;
+	/* Chroma multiplier applied across the whole brand ramp. 0 renders it grey. */
+	--fann-brand-chroma: 1;
+
+	/* Neutrals --------------------------------------------------------------- */
+	/* Greys carry a trace of the brand hue so they never look muddy next to it. */
+	--fann-neutral-hue: 286;
+	--fann-neutral-chroma: 1;
+
+	/* Status ----------------------------------------------------------------- */
+	--fann-success-hue: 150;
+	--fann-warning-hue: 70;
+	--fann-danger-hue: 26;
+	--fann-info-hue: 260;
+
+	/* Shape ------------------------------------------------------------------ */
+	/* 0 squares off the entire product — the current direction. Set to 0.25rem and
+	   the steps land exactly on Tailwind's own values (xs 2, sm 4, md 6, lg 8,
+	   xl 12, 2xl 16, 3xl 24, 4xl 32); every `rounded-*` class follows either way. */
+	--fann-radius: 0px;
+	/* Opt-in, and currently unused: nothing in the product is a pill or a circle.
+	   Set to 9999px only if that is a deliberate decision — it changes affordances
+	   (a circular checkbox reads as a radio button), not just the look. */
+	--fann-radius-full: 0px;
+
+	/* Density ---------------------------------------------------------------- */
+	/* Base unit for control heights, on a 4px grid → 32/36/40/44px controls. */
+	--fann-control-step: 0.25rem;
+
+	/* Layout ----------------------------------------------------------------- */
+	/* How wide the header, the footer and the marketing pages run before they stop
+	   growing. One knob, so the logo, the nav and the headline below them stay on
+	   the same left edge — they drift apart the moment two of them hard-code it. */
+	--fann-shell-width: 64rem;
+
+	/* Spacing ---------------------------------------------------------------- */
+	/* The rhythm that repeats product-wide. One-off gaps still use Tailwind
+	   classes; these four are the ones worth turning a single knob on, because
+	   they set how roomy the product feels. Lower them for a denser tool. */
+	--fann-space-page: 2rem; /* page gutter */
+	--fann-space-panel: 1.5rem; /* inside a card, dialog body, empty state */
+	--fann-space-band: 1.25rem; /* header/footer band padding */
+	--fann-space-control: 0.75rem; /* horizontal padding inside inputs and selects */
+
+	/* Header ----------------------------------------------------------------- */
+	/* How much the page is blurred behind the header once it has scrolled. The
+	   header has no bottom rule at all — the blur is what separates it from the
+	   content, which is a softer edge than a hairline and does not cut the top off
+	   a hero. */
+	--fann-header-blur: 14px;
+
+	/* Focus ------------------------------------------------------------------ */
+	/* Drawn as a ring with a gap, not a hugging outline: the gap is filled with
+	   the surface colour, so the element's own border stays visible underneath and
+	   the ring reads as a separate object rather than a thickened edge. */
+	--fann-focus-width: 2px;
+	--fann-focus-offset: 2px;
+
+	/* Elevation -------------------------------------------------------------- */
+	/* An OKLCH `L C H` triplet — alpha is applied where the shadow is composed. */
+	--fann-shadow-color: 0 0 0;
+	--fann-scrim-opacity: 0.4;
+
+	/* Motion ----------------------------------------------------------------- */
+	/* Fast and flat. No spring, no bounce. */
+	--fann-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+	--fann-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+	--fann-duration-fast: 100ms;
+	--fann-duration-normal: 140ms;
+	--fann-duration-slow: 200ms;
+
+	/* Scroll-driven motion, used only on the marketing pages. These are tied to
+	   scroll position rather than a clock, so the knobs are distances and
+	   percentages of the entry, not durations. See `motion.css`.
+	   Set --fann-reveal-distance to 0 to turn the movement off and keep the fade. */
+
+	/* Deliberately small. A section that travels a visible distance is a section
+	   the reader watches arrive, and half-arrived content reads as a rendering
+	   fault rather than as an effect. This should register as "the page is alive",
+	   never as "the page is still loading". */
+	--fann-reveal-distance: 0.5rem;
+	/* Where in the element's entry the animation starts and finishes. It is over by
+	   the time the block is a third of the way in — well before anyone has begun
+	   reading it. */
+	--fann-reveal-start: 0%;
+	--fann-reveal-end: 28%;
+
+	/* Typefaces -------------------------------------------------------------- */
+	--fann-font-sans: 'Mona Sans Variable', 'Mona Sans', system-ui, -apple-system, sans-serif;
+	--fann-font-mono: 'Geist Mono Variable', 'Geist Mono', ui-monospace, 'SF Mono', monospace;
+	/* The wordmark and every heading — the same face as body copy.
+	   Mona Sans is variable across 200–900, so a heading is separated from the text
+	   under it by weight rather than by a second typeface. That is genuinely one
+	   voice at two volumes, which pairing two faces only ever approximates, and it
+	   is a font file the page already had to load.
+	   Kept as its own token rather than collapsed into `--fann-font-sans`: the two
+	   answer different questions, and a display face is a change to this one line
+	   rather than to every heading rule. */
+	--fann-font-display: var(--fann-font-sans);
+	/* The weight that makes a heading read as one. Mona Sans holds together well
+	   above 700; below it the difference from body copy stops being legible at
+	   small sizes. */
+	--fann-weight-display: 700;
+}
+
+/* ---------------------------------------------------------------------------
+   2. RAMPS — derived from the knobs. Lightness and relative chroma are
+   hand-tuned per step; hue and overall saturation come from layer 1.
+   --------------------------------------------------------------------------- */
+:root {
+	/* Neutral */
+	--fann-gray-0: oklch(1 0 0);
+	--fann-gray-25: oklch(0.988 calc(0.001 * var(--fann-neutral-chroma)) var(--fann-neutral-hue));
+	--fann-gray-50: oklch(0.975 calc(0.002 * var(--fann-neutral-chroma)) var(--fann-neutral-hue));
+	--fann-gray-100: oklch(0.955 calc(0.003 * var(--fann-neutral-chroma)) var(--fann-neutral-hue));
+	--fann-gray-150: oklch(0.93 calc(0.004 * var(--fann-neutral-chroma)) var(--fann-neutral-hue));
+	--fann-gray-200: oklch(0.905 calc(0.005 * var(--fann-neutral-chroma)) var(--fann-neutral-hue));
+	--fann-gray-300: oklch(0.845 calc(0.006 * var(--fann-neutral-chroma)) var(--fann-neutral-hue));
+	--fann-gray-400: oklch(0.71 calc(0.008 * var(--fann-neutral-chroma)) var(--fann-neutral-hue));
+	--fann-gray-500: oklch(0.595 calc(0.011 * var(--fann-neutral-chroma)) var(--fann-neutral-hue));
+	--fann-gray-600: oklch(0.49 calc(0.013 * var(--fann-neutral-chroma)) var(--fann-neutral-hue));
+	--fann-gray-700: oklch(0.4 calc(0.014 * var(--fann-neutral-chroma)) var(--fann-neutral-hue));
+	--fann-gray-800: oklch(0.3 calc(0.014 * var(--fann-neutral-chroma)) var(--fann-neutral-hue));
+	--fann-gray-850: oklch(0.245 calc(0.013 * var(--fann-neutral-chroma)) var(--fann-neutral-hue));
+	--fann-gray-900: oklch(0.205 calc(0.012 * var(--fann-neutral-chroma)) var(--fann-neutral-hue));
+	--fann-gray-925: oklch(0.175 calc(0.011 * var(--fann-neutral-chroma)) var(--fann-neutral-hue));
+	--fann-gray-950: oklch(0.145 calc(0.01 * var(--fann-neutral-chroma)) var(--fann-neutral-hue));
+	--fann-gray-1000: oklch(0.09 calc(0.008 * var(--fann-neutral-chroma)) var(--fann-neutral-hue));
+
+	/* Brand */
+	--fann-brand-50: oklch(0.962 calc(0.018 * var(--fann-brand-chroma)) var(--fann-brand-hue));
+	--fann-brand-100: oklch(0.93 calc(0.034 * var(--fann-brand-chroma)) var(--fann-brand-hue));
+	--fann-brand-200: oklch(0.87 calc(0.065 * var(--fann-brand-chroma)) var(--fann-brand-hue));
+	--fann-brand-300: oklch(0.785 calc(0.115 * var(--fann-brand-chroma)) var(--fann-brand-hue));
+	--fann-brand-400: oklch(0.673 calc(0.182 * var(--fann-brand-chroma)) var(--fann-brand-hue));
+	--fann-brand-500: oklch(0.585 calc(0.233 * var(--fann-brand-chroma)) var(--fann-brand-hue));
+	--fann-brand-600: oklch(0.511 calc(0.262 * var(--fann-brand-chroma)) var(--fann-brand-hue));
+	--fann-brand-700: oklch(0.457 calc(0.24 * var(--fann-brand-chroma)) var(--fann-brand-hue));
+	--fann-brand-800: oklch(0.398 calc(0.195 * var(--fann-brand-chroma)) var(--fann-brand-hue));
+	--fann-brand-900: oklch(0.359 calc(0.144 * var(--fann-brand-chroma)) var(--fann-brand-hue));
+	--fann-brand-950: oklch(0.257 calc(0.09 * var(--fann-brand-chroma)) var(--fann-brand-hue));
+
+	/* Status — only the steps actually used */
+	--fann-success-100: oklch(0.925 0.084 var(--fann-success-hue));
+	--fann-success-500: oklch(0.723 0.19 var(--fann-success-hue));
+	--fann-success-600: oklch(0.627 0.17 var(--fann-success-hue));
+	--fann-success-950: oklch(0.266 0.065 var(--fann-success-hue));
+
+	--fann-warning-100: oklch(0.962 0.059 var(--fann-warning-hue));
+	--fann-warning-500: oklch(0.769 0.165 var(--fann-warning-hue));
+	--fann-warning-600: oklch(0.666 0.15 var(--fann-warning-hue));
+	--fann-warning-950: oklch(0.279 0.077 var(--fann-warning-hue));
+
+	--fann-danger-100: oklch(0.936 0.032 var(--fann-danger-hue));
+	--fann-danger-500: oklch(0.637 0.237 var(--fann-danger-hue));
+	--fann-danger-600: oklch(0.577 0.245 var(--fann-danger-hue));
+	--fann-danger-700: oklch(0.51 0.23 var(--fann-danger-hue));
+	--fann-danger-950: oklch(0.258 0.092 var(--fann-danger-hue));
+
+	--fann-info-100: oklch(0.932 0.032 var(--fann-info-hue));
+	--fann-info-500: oklch(0.623 0.214 var(--fann-info-hue));
+	--fann-info-600: oklch(0.546 0.245 var(--fann-info-hue));
+	--fann-info-950: oklch(0.282 0.091 var(--fann-info-hue));
+
+	/* Shape — the whole scale follows `--fann-radius`.
+	   Multipliers reproduce Tailwind's default radius ramp off a 4px base. */
+	--fann-radius-xs: calc(var(--fann-radius) * 0.5); /* 2 */
+	--fann-radius-sm: calc(var(--fann-radius) * 1); /* 4 */
+	--fann-radius-md: calc(var(--fann-radius) * 1.5); /* 6 */
+	--fann-radius-lg: calc(var(--fann-radius) * 2); /* 8 */
+	--fann-radius-xl: calc(var(--fann-radius) * 3); /* 12 */
+	--fann-radius-2xl: calc(var(--fann-radius) * 4); /* 16 */
+	--fann-radius-3xl: calc(var(--fann-radius) * 6); /* 24 */
+	--fann-radius-4xl: calc(var(--fann-radius) * 8); /* 32 */
+
+	/* Density — the height contract every interactive element honours */
+	--fann-control-xs: calc(var(--fann-control-step) * 8); /* 32 */
+	--fann-control-sm: calc(var(--fann-control-step) * 9); /* 36 */
+	--fann-control-md: calc(var(--fann-control-step) * 10); /* 40 — default */
+	--fann-control-lg: calc(var(--fann-control-step) * 11); /* 44 */
+
+	/* Layout */
+	--fann-sidebar-width: calc(var(--fann-control-step) * 62); /* 248 */
+	--fann-topbar-height: calc(var(--fann-control-step) * 14); /* 56 */
+	--fann-row-height: calc(var(--fann-control-step) * 12); /* 48 */
+	--fann-row-height-compact: calc(var(--fann-control-step) * 10); /* 40 */
+
+	/* Elevation — shadows exist only for true overlays */
+	--fann-shadow-overlay:
+		0 1px 2px oklch(var(--fann-shadow-color) / 0.06),
+		0 8px 24px oklch(var(--fann-shadow-color) / 0.1),
+		0 2px 6px oklch(var(--fann-shadow-color) / 0.06);
+	--fann-shadow-popover:
+		0 1px 2px oklch(var(--fann-shadow-color) / 0.06),
+		0 4px 12px oklch(var(--fann-shadow-color) / 0.08);
+
+	/* The focus ring itself: a surface-coloured gap, then the accent ring. Composed
+	   here so every focusable element gets the identical treatment from one rule. */
+	--fann-ring-focus:
+		0 0 0 var(--fann-focus-offset) var(--fann-surface),
+		0 0 0 calc(var(--fann-focus-offset) + var(--fann-focus-width)) var(--fann-focus-ring);
+}
+
+/* ---------------------------------------------------------------------------
+   3. SEMANTIC — light
+   --------------------------------------------------------------------------- */
+:root {
+	--fann-surface-sunken: var(--fann-gray-50);
+	--fann-surface: var(--fann-gray-0);
+	--fann-surface-raised: var(--fann-gray-0);
+	--fann-surface-overlay: var(--fann-gray-0);
+	--fann-surface-hover: var(--fann-gray-50);
+	--fann-surface-active: var(--fann-gray-100);
+	--fann-surface-selected: var(--fann-brand-50);
+	--fann-surface-inverted: var(--fann-gray-900);
+	/* Dims the page behind a modal. */
+	--fann-scrim: oklch(var(--fann-shadow-color) / var(--fann-scrim-opacity));
+
+	--fann-border: var(--fann-gray-200);
+	--fann-border-strong: var(--fann-gray-300);
+	--fann-border-accent: var(--fann-brand-600);
+
+	--fann-text: var(--fann-gray-900);
+	--fann-text-muted: var(--fann-gray-500);
+	--fann-text-subtle: var(--fann-gray-400);
+	--fann-text-inverted: var(--fann-gray-0);
+	/* Legible on `--fann-surface-inverted`, e.g. a shortcut chip inside a tooltip. */
+	--fann-text-on-inverted-subtle: oklch(1 0 0 / 0.15);
+	--fann-text-accent: var(--fann-brand-600);
+
+	--fann-accent: var(--fann-brand-600);
+	--fann-accent-hover: var(--fann-brand-700);
+	--fann-accent-active: var(--fann-brand-800);
+	--fann-accent-subtle: var(--fann-brand-50);
+	/* Foreground on a filled accent surface. */
+	--fann-accent-on: var(--fann-gray-0);
+
+	--fann-focus-ring: var(--fann-brand-600);
+	/* The header's own background once it has settled: the page surface, made
+	   translucent so the blur behind it has something to show through.
+	   The first declaration is the fallback — a browser without relative colour
+	   syntax gets an opaque header rather than a transparent one, which is the
+	   right way round to fail. */
+	--fann-surface-veil: var(--fann-surface);
+	--fann-surface-veil: oklch(from var(--fann-surface) l c h / 0.72);
+
+	--fann-success: var(--fann-success-600);
+	--fann-success-subtle: var(--fann-success-100);
+	--fann-success-on: var(--fann-gray-0);
+	--fann-warning: var(--fann-warning-600);
+	--fann-warning-subtle: var(--fann-warning-100);
+	--fann-warning-on: var(--fann-gray-0);
+	--fann-danger: var(--fann-danger-600);
+	--fann-danger-hover: var(--fann-danger-700);
+	--fann-danger-subtle: var(--fann-danger-100);
+	--fann-danger-on: var(--fann-gray-0);
+	--fann-info: var(--fann-info-600);
+	--fann-info-subtle: var(--fann-info-100);
+	--fann-info-on: var(--fann-gray-0);
+}
+
+/* ---------------------------------------------------------------------------
+   3. SEMANTIC — dark
+   The only place the dark theme is described. Because every component reads
+   these names and never a ramp step, this block is the entire dark mode.
+   --------------------------------------------------------------------------- */
+.dark {
+	--fann-surface-sunken: var(--fann-gray-1000);
+	--fann-surface: var(--fann-gray-950);
+	--fann-surface-raised: var(--fann-gray-925);
+	--fann-surface-overlay: var(--fann-gray-900);
+	--fann-surface-hover: var(--fann-gray-900);
+	--fann-surface-active: var(--fann-gray-850);
+	--fann-surface-selected: var(--fann-brand-950);
+	--fann-surface-inverted: var(--fann-gray-100);
+
+	--fann-border: var(--fann-gray-850);
+	--fann-border-strong: var(--fann-gray-800);
+	--fann-border-accent: var(--fann-brand-400);
+
+	--fann-text: var(--fann-gray-100);
+	--fann-text-muted: var(--fann-gray-400);
+	--fann-text-subtle: var(--fann-gray-500);
+	--fann-text-inverted: var(--fann-gray-950);
+	--fann-text-on-inverted-subtle: oklch(0 0 0 / 0.12);
+	--fann-text-accent: var(--fann-brand-400);
+
+	--fann-accent: var(--fann-brand-500);
+	--fann-accent-hover: var(--fann-brand-400);
+	--fann-accent-active: var(--fann-brand-300);
+	--fann-accent-subtle: var(--fann-brand-950);
+	--fann-accent-on: var(--fann-gray-0);
+
+	--fann-focus-ring: var(--fann-brand-400);
+	/* The header's own background once it has settled: the page surface, made
+	   translucent so the blur behind it has something to show through.
+	   The first declaration is the fallback — a browser without relative colour
+	   syntax gets an opaque header rather than a transparent one, which is the
+	   right way round to fail. */
+	--fann-surface-veil: var(--fann-surface);
+	--fann-surface-veil: oklch(from var(--fann-surface) l c h / 0.72);
+
+	--fann-success: var(--fann-success-500);
+	--fann-success-subtle: var(--fann-success-950);
+	--fann-success-on: var(--fann-gray-950);
+	--fann-warning: var(--fann-warning-500);
+	--fann-warning-subtle: var(--fann-warning-950);
+	--fann-warning-on: var(--fann-gray-950);
+	--fann-danger: var(--fann-danger-500);
+	--fann-danger-hover: oklch(0.69 0.22 var(--fann-danger-hue));
+	--fann-danger-subtle: var(--fann-danger-950);
+	--fann-danger-on: var(--fann-gray-950);
+	--fann-info: var(--fann-info-500);
+	--fann-info-subtle: var(--fann-info-950);
+	--fann-info-on: var(--fann-gray-950);
+}
+
+/* ---------------------------------------------------------------------------
+   4. UTILITIES — expose the semantic layer to Tailwind.
+
+   `inline` so each utility emits `var(--fann-…)` rather than a resolved colour.
+   That indirection is what lets `.dark` re-point a token and have every existing
+   class follow, with no duplicated dark: variants anywhere in the codebase.
+   --------------------------------------------------------------------------- */
+@theme inline {
+	/* Discard Tailwind's default palette — an unreachable `bg-red-500` in this
+	   product is a bug, and removing them makes that a build-visible mistake. */
+	--color-*: initial;
+
+	--color-transparent: transparent;
+	--color-current: currentColor;
+
+	--color-surface-sunken: var(--fann-surface-sunken);
+	--color-surface: var(--fann-surface);
+	--color-surface-raised: var(--fann-surface-raised);
+	--color-surface-overlay: var(--fann-surface-overlay);
+	--color-surface-hover: var(--fann-surface-hover);
+	--color-surface-active: var(--fann-surface-active);
+	--color-surface-selected: var(--fann-surface-selected);
+	--color-surface-inverted: var(--fann-surface-inverted);
+	--color-surface-veil: var(--fann-surface-veil);
+	--color-scrim: var(--fann-scrim);
+
+	--color-border: var(--fann-border);
+	--color-border-strong: var(--fann-border-strong);
+	--color-border-accent: var(--fann-border-accent);
+
+	--color-text: var(--fann-text);
+	--color-text-muted: var(--fann-text-muted);
+	--color-text-subtle: var(--fann-text-subtle);
+	--color-text-inverted: var(--fann-text-inverted);
+	--color-on-inverted-subtle: var(--fann-text-on-inverted-subtle);
+	--color-text-accent: var(--fann-text-accent);
+
+	--color-accent: var(--fann-accent);
+	--color-accent-hover: var(--fann-accent-hover);
+	--color-accent-active: var(--fann-accent-active);
+	--color-accent-subtle: var(--fann-accent-subtle);
+	--color-accent-on: var(--fann-accent-on);
+
+	--color-success: var(--fann-success);
+	--color-success-subtle: var(--fann-success-subtle);
+	--color-success-on: var(--fann-success-on);
+	--color-warning: var(--fann-warning);
+	--color-warning-subtle: var(--fann-warning-subtle);
+	--color-warning-on: var(--fann-warning-on);
+	--color-danger: var(--fann-danger);
+	--color-danger-hover: var(--fann-danger-hover);
+	--color-danger-subtle: var(--fann-danger-subtle);
+	--color-danger-on: var(--fann-danger-on);
+	--color-info: var(--fann-info);
+	--color-info-subtle: var(--fann-info-subtle);
+	--color-info-on: var(--fann-info-on);
+
+	/* Shape — `rounded-*` follows `--fann-radius` with no per-class edits. */
+	--radius-xs: var(--fann-radius-xs);
+	--radius-sm: var(--fann-radius-sm);
+	--radius-md: var(--fann-radius-md);
+	--radius-lg: var(--fann-radius-lg);
+	--radius-xl: var(--fann-radius-xl);
+	--radius-2xl: var(--fann-radius-2xl);
+	--radius-3xl: var(--fann-radius-3xl);
+	--radius-4xl: var(--fann-radius-4xl);
+	--radius-full: var(--fann-radius-full);
+
+	--font-sans: var(--fann-font-sans);
+	--font-mono: var(--fann-font-mono);
+	--font-display: var(--fann-font-display);
+
+	--shadow-overlay: var(--fann-shadow-overlay);
+	--shadow-popover: var(--fann-shadow-popover);
+
+	--ease-out: var(--fann-ease-out);
+	--ease-in-out: var(--fann-ease-in-out);
+}
+
+/* The type scale is deliberately hand-tuned rather than computed from a ratio:
+   13px body in a dense tool wants tighter steps than any modular scale gives.
+   Not derived from a knob, because changing it is a redesign, not a setting. */
+@theme {
+	--text-2xs: 0.6875rem; /* 11 */
+	--text-2xs--line-height: 1rem;
+	--text-2xs--letter-spacing: 0.01em;
+	--text-xs: 0.75rem; /* 12 */
+	--text-xs--line-height: 1.125rem;
+	--text-sm: 0.8125rem; /* 13 — body */
+	--text-sm--line-height: 1.25rem;
+	--text-base: 0.875rem; /* 14 */
+	--text-base--line-height: 1.375rem;
+	--text-lg: 1rem; /* 16 */
+	--text-lg--line-height: 1.5rem;
+	--text-xl: 1.25rem; /* 20 */
+	--text-xl--line-height: 1.75rem;
+	--text-xl--letter-spacing: -0.011em;
+	--text-2xl: 1.5rem; /* 24 */
+	--text-2xl--line-height: 2rem;
+	--text-2xl--letter-spacing: -0.014em;
+	--text-3xl: 2rem; /* 32 */
+	--text-3xl--line-height: 2.375rem;
+	--text-3xl--letter-spacing: -0.019em;
+	--text-4xl: 2.5rem; /* 40 */
+	--text-4xl--line-height: 2.875rem;
+	--text-4xl--letter-spacing: -0.021em;
+	--text-5xl: 3.25rem; /* 52 */
+	--text-5xl--line-height: 3.5rem;
+	--text-5xl--letter-spacing: -0.024em;
+}

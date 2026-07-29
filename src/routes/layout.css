@@ -1,0 +1,150 @@
+@import 'tailwindcss';
+/* `class` strategy: we hand-style every control, so the plugin must not apply
+   global resets that fight the primitives in $lib/components/ui. */
+@plugin '@tailwindcss/forms' {
+	strategy: class;
+}
+@plugin '@tailwindcss/typography';
+
+/* One face for everything but numbers. Variable across 200–900, which is what
+   lets headings separate themselves from body copy by weight — see
+   `--fann-font-display` in tokens.css. */
+@import '@fontsource-variable/mona-sans';
+@import '@fontsource-variable/geist-mono';
+
+/* Every colour, radius, size and duration in the product is defined here. */
+@import '../lib/design/tokens.css';
+/* Scroll-driven animations for the marketing pages, built on those tokens. */
+@import '../lib/design/motion.css';
+
+/* Class-based dark mode — the no-flash script in app.html toggles `.dark` on <html>. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---------------------------------------------------------------------------
+   Base
+   The only stylesheet allowed to reference `--fann-*` directly, because these
+   rules target bare elements that carry no utility classes.
+   --------------------------------------------------------------------------- */
+@layer base {
+	*,
+	::before,
+	::after {
+		border-color: var(--fann-border);
+	}
+
+	html {
+		-webkit-text-size-adjust: 100%;
+		scrollbar-gutter: stable;
+		/* Tied to our own class rather than left at `light dark`, so the browser's
+		   own furniture — scrollbars, form controls, the flash before paint — follows
+		   the theme the user picked here and not the one their OS is set to. */
+		color-scheme: light;
+	}
+
+	html.dark {
+		color-scheme: dark;
+	}
+
+	body {
+		background-color: var(--fann-surface-sunken);
+		color: var(--fann-text);
+		font-family: var(--fann-font-sans);
+		font-size: var(--text-sm);
+		line-height: var(--text-sm--line-height);
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+	}
+
+	/* Numbers that can sit in a column must not jitter as they update. */
+	table,
+	time,
+	[data-numeric] {
+		font-variant-numeric: tabular-nums;
+	}
+
+	/* Every figure in the product is set in mono. Salaries, counts, dates and ids
+	   are data, and data reads as data when the digits are the same width and a
+	   different shape from the prose around them.
+
+	   Declared here so `data-numeric` is the whole instruction — a component that
+	   marks a number does not also have to remember `font-mono`, and the two can
+	   never drift apart. */
+	[data-numeric] {
+		font-family: var(--fann-font-mono);
+	}
+
+	/* One focus treatment, applied globally.
+
+	   A ring with an offset gap rather than an outline: the gap is painted in the
+	   surface colour, so the element keeps its own neutral border and the accent
+	   ring floats clear of it. `outline: none` is normally forbidden here, and is
+	   only acceptable because the line below is a strictly more visible
+	   replacement — never drop one without the other.
+
+	   Both the width and the gap are knobs in `tokens.css`. */
+	:focus-visible {
+		outline: none;
+		box-shadow: var(--fann-ring-focus);
+		/* A ring is painted by the element, unlike an outline, so in a grid of
+		   touching cards the *next* sibling's background paints straight over it and
+		   the ring appears cut off down one edge. Lifting the focused element fixes
+		   that. Safe here because these rules are in `@layer base`: any element that
+		   sets its own `position` or `z-index` through a utility class still wins. */
+		position: relative;
+		z-index: 1;
+	}
+
+	/* Windows high-contrast mode discards `box-shadow`, which would leave keyboard
+	   users with no focus indicator at all. Hand the outline back there. */
+	@media (forced-colors: active) {
+		:focus-visible {
+			outline: 2px solid CanvasText;
+			outline-offset: 2px;
+		}
+	}
+
+	::selection {
+		background-color: var(--fann-accent);
+		color: var(--fann-accent-on);
+	}
+
+	::placeholder {
+		color: var(--fann-text-subtle);
+	}
+
+	:disabled {
+		cursor: not-allowed;
+	}
+
+	/* Headings are the same face as body copy, set heavier. Mona Sans is variable
+	   across 200–900, so the difference between a heading and the text under it is
+	   weight on one skeleton — one voice at two volumes, rather than two typefaces
+	   asked to behave like relatives. */
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		font-family: var(--fann-font-display);
+		font-weight: var(--fann-weight-display);
+		letter-spacing: -0.015em;
+		text-wrap: balance;
+	}
+
+	/* Long-form prose (job descriptions) should wrap sensibly. */
+	p {
+		text-wrap: pretty;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		*,
+		::before,
+		::after {
+			animation-duration: 0.01ms !important;
+			animation-iteration-count: 1 !important;
+			transition-duration: 0.01ms !important;
+			scroll-behavior: auto !important;
+		}
+	}
+}

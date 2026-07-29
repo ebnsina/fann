@@ -1,0 +1,20 @@
+{
+	"extends": "$app/tsconfig",
+	// `drizzle.config.ts` lives outside src, so it is listed explicitly. The
+	// deprecated `kit.typescript.config` hook that used to do this is gone.
+	"include": ["src", "vite.config.ts", "drizzle.config.ts"],
+	"compilerOptions": {
+		"rewriteRelativeImportExtensions": true,
+		"allowJs": true,
+		"checkJs": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"sourceMap": true,
+		"strict": true,
+		"moduleResolution": "bundler"
+	}
+	// Path aliases are handled by https://svelte.dev/docs/kit/configuration#alias
+	// except $lib which is handled by https://svelte.dev/docs/kit/configuration#files
+}

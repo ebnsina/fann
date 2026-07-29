@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>%sveltekit.error.message% · Fann</title>
+		<!--
+			The shell SvelteKit falls back to when it cannot render the app at all —
+			the error page itself failed, or the failure happened before the app
+			booted. It gets no stylesheet and no JavaScript, so the small amount of CSS
+			below is inline of necessity rather than by choice, and the colours are
+			literals because the token file is exactly what is not available here.
+		-->
+		<style>
+			:root {
+				color-scheme: light dark;
+				--ink: #1a1a20;
+				--muted: #6a6a77;
+				--page: #fbfbfc;
+			}
+			@media (prefers-color-scheme: dark) {
+				:root {
+					--ink: #ececed;
+					--muted: #8e8e9c;
+					--page: #131316;
+				}
+			}
+			body {
+				margin: 0;
+				min-height: 100vh;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				padding: 2rem;
+				background: var(--page);
+				color: var(--ink);
+				font:
+					400 15px/1.5 system-ui,
+					-apple-system,
+					sans-serif;
+			}
+			main {
+				max-width: 28rem;
+			}
+			.status {
+				font:
+					400 12px ui-monospace,
+					monospace;
+				color: var(--muted);
+			}
+			h1 {
+				font-size: 1.5rem;
+				font-weight: 600;
+				margin: 0.75rem 0 0.5rem;
+			}
+			p {
+				margin: 0 0 1.5rem;
+				color: var(--muted);
+			}
+			a {
+				color: inherit;
+				text-underline-offset: 3px;
+			}
+		</style>
+	</head>
+	<body>
+		<main>
+			<p class="status">%sveltekit.status%</p>
+			<h1>Something went wrong</h1>
+			<p>%sveltekit.error.message%</p>
+			<a href="/">Go to the home page</a>
+		</main>
+	</body>
+</html>

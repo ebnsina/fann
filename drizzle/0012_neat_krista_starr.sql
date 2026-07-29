@@ -1,0 +1,1 @@
+ALTER TABLE "companies" ADD COLUMN "allows_interaction" boolean DEFAULT true NOT NULL;
