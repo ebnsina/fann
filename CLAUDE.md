@@ -625,6 +625,40 @@ somebody keeps. It carries `Content-Disposition: attachment` and `no-store`, and
 omits internal ids. Employers' internal notes are deliberately absent: they are the
 company's record, not the candidate's, which is the whole premise of `note.ts`.
 
+### Closing a company
+
+`services/organization-account.ts` is the mirror of the above, and it hits the
+same wall from the other side. `organizations → jobs → applications` cascades the
+whole way, so dropping an organization row would erase **every application every
+candidate ever sent to it**, along with their timelines — the same failure
+`account.ts` refuses, pointed at the candidate instead.
+
+- **Closing is a closure, not a delete.** Jobs and the company profile are
+  soft-deleted so the listings and public pages go; the applications, their
+  events and the job titles on them survive. A person's record of their own job
+  hunting must not develop a hole because a company left.
+- **Everyone still waiting is answered, not abandoned.** Every in-flight
+  application is closed with a stated reason and a candidate-visible event. A
+  company vanishing mid-process is precisely the ghosting this product argues
+  with, so the closure keeps the promise on its way out.
+- **It never stamps `firstRespondedAt`.** Routing those rejections through
+  `changeStatus` would have done it automatically — and that would let a company
+  which ignored three hundred people buy a perfect response record by closing its
+  account. There is a test that fails the moment it is set.
+- **A sent, unanswered offer blocks the whole thing.** Closing underneath
+  somebody leaves them holding a job offer from a company that no longer exists
+  here, with no way to accept it. Open _applications_ are deliberately not a
+  blocker — they are handled.
+- **Team memberships are deleted outright**, and the verification badge is
+  dropped. The data is retained for the candidates' sake, not the company's, so
+  nobody is left able to reach it and no badge survives that nothing re-checks.
+
+The employer export is guarded on **`org.delete`, not `org.update`** — it puts
+every candidate's name, email, cover letter and the team's private notes in one
+file, which is a bigger thing to hand out than the right to edit a tagline. It
+**includes** notes and scorecards for the same reason the candidate export omits
+them: they are the company's own record.
+
 ## Applications
 
 Two rules run through `services/application.ts` and must not be worked around:

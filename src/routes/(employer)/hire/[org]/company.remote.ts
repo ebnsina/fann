@@ -8,6 +8,7 @@ import { companies } from '#lib/server/db/schema/company';
 import * as companyService from '#lib/server/services/company';
 import * as verification from '#lib/server/services/verification';
 import { companyProfileSchema } from '#lib/schemas/company';
+import * as organizationAccount from '#lib/server/services/organization-account';
 
 /** The company's own settings: its public profile, and who may reply to it. */
 export const companySettings = query(v.string(), async (orgSlug) => {
@@ -109,3 +110,39 @@ export const checkDomain = command(v.string(), async (orgSlug) => {
 
 	return outcome;
 });
+
+/**
+ * What closing this company would do, so the dialog can say it in numbers.
+ *
+ * Read with `org.delete`, not `org.update`: showing a recruiter how many people
+ * are waiting is fine, but the shape of this question is "are you about to close
+ * the company", and only an owner is ever asking it.
+ */
+export const companyClosureImpact = query(v.string(), async (orgSlug) => {
+	const { organizationId } = await requirePermission(orgSlug, 'org.delete');
+
+	const [impact, blocker] = await Promise.all([
+		organizationAccount.closureImpact(organizationId),
+		organizationAccount.closureBlocker(organizationId)
+	]);
+
+	return { ...impact, blocker };
+});
+
+/**
+ * Close the company account.
+ *
+ * Returns rather than redirecting: kit@3 refuses a `redirect()` inside a command
+ * *after* the work has already committed, so the company would really be closed
+ * while the page showed an error. The caller calls `goto`.
+ */
+export const closeCompany = command(
+	v.object({ orgSlug: v.string(), reason: v.optional(v.string()) }),
+	async ({ orgSlug, reason }) => {
+		const { organizationId } = await requirePermission(orgSlug, 'org.delete');
+
+		const result = await organizationAccount.close(organizationId, { reason });
+
+		return { closed: true as const, ...result };
+	}
+);

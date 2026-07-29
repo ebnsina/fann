@@ -15,9 +15,13 @@
 	import { toast } from '#lib/components/ui/toast.svelte';
 	import { icons } from '#lib/design/icons';
 	import { SIZE_OPTIONS, companyProfileSchema } from '#lib/schemas/company';
+	import ConfirmDialog from '#lib/components/ui/ConfirmDialog.svelte';
+	import { goto } from '$app/navigation';
 	import {
 		checkDomain,
 		claimDomain,
+		closeCompany,
+		companyClosureImpact,
 		companySettings,
 		saveCompanyProfile,
 		setInteraction,
@@ -41,6 +45,33 @@
 	let size = $derived(company?.size ?? '');
 
 	const verification = $derived(await verificationState(orgSlug));
+	const impact = $derived(await companyClosureImpact(orgSlug));
+
+	const companyName = $derived(company?.name ?? 'this company');
+
+	let confirmingClose = $state(false);
+	let closing = $state(false);
+
+	async function closeThisCompany() {
+		closing = true;
+		try {
+			const result = await closeCompany({ orgSlug });
+			// Navigated from here rather than by the command: kit@3 refuses a redirect
+			// inside a command *after* the work has committed, so the company would
+			// really be closed while this page showed an error.
+			await goto('/hire');
+			toast.success(
+				result.applicationsAnswered > 0
+					? `Closed. ${result.applicationsAnswered} ${result.applicationsAnswered === 1 ? 'person was' : 'people were'} told.`
+					: 'Closed.'
+			);
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Could not close the company.');
+		} finally {
+			closing = false;
+			confirmingClose = false;
+		}
+	}
 
 	let domainDraft = $derived(verification.domain ?? '');
 	let claiming = $state(false);
@@ -306,5 +337,92 @@
 				{/if}
 			</div>
 		</Card>
+
+		<Card
+			title="Download your company's data"
+			description="Everything {company.name} holds, as a file you can keep."
+		>
+			<div class="flex flex-col gap-4">
+				<p class="text-sm text-text-muted">
+					Your profile and jobs, every application you received with its timeline, your team's
+					private notes and scorecards, interviews and offers. It contains other people's personal
+					details, so keep it somewhere you would keep a CV.
+				</p>
+
+				<div class="flex flex-wrap items-center gap-3">
+					<Button href="/hire/{orgSlug}/company/export" variant="secondary" download>
+						<Icon icon={icons.document} class="size-4" />
+						Download
+					</Button>
+					<span class="text-xs text-text-subtle">JSON. Owners only.</span>
+				</div>
+			</div>
+		</Card>
+
+		<!--
+			Last on the page, and the only destructive thing on it. Closing is a
+			closure rather than a delete: see `organization-account.ts` for why the
+			applications have to survive it.
+		-->
+		<Card title="Close this company" description="This cannot be undone.">
+			<div class="flex flex-col gap-4">
+				<div class="flex flex-col gap-2 text-sm text-text-muted">
+					<p>
+						Your jobs come off the board, your company page goes, and everyone on the team loses
+						access — including you.
+					</p>
+					<p>
+						Anyone still waiting on you gets a real answer rather than silence, saying the company
+						closed its account. Their application and its history stay in their own account, because
+						a person's record of their job hunting should not develop a hole when a company leaves.
+					</p>
+					<p>Your reply times are not erased or reset by this. What happened, happened.</p>
+				</div>
+
+				{#if impact.blocker}
+					<!--
+						Before the button, not after pressing it. Somebody who has an offer
+						outstanding should find that out while they are deciding.
+					-->
+					<p
+						class="flex items-start gap-2 border border-warning/25 bg-warning-subtle px-3 py-2 text-sm text-warning"
+					>
+						<Icon icon={icons.warning} class="mt-px size-4 shrink-0" />
+						{impact.blocker}
+					</p>
+				{:else}
+					<div class="flex flex-wrap items-center gap-4 text-sm text-text-muted">
+						<span>
+							<span class="text-text" data-numeric>{impact.openJobs}</span>
+							open {impact.openJobs === 1 ? 'job' : 'jobs'}
+						</span>
+						<span>
+							<span class="text-text" data-numeric>{impact.waitingCandidates}</span>
+							{impact.waitingCandidates === 1 ? 'person' : 'people'} waiting on you
+						</span>
+						<span>
+							<span class="text-text" data-numeric>{impact.teamMembers}</span>
+							team {impact.teamMembers === 1 ? 'member' : 'members'}
+						</span>
+					</div>
+
+					<div>
+						<Button variant="danger" onclick={() => (confirmingClose = true)}>
+							Close {company.name}
+						</Button>
+					</div>
+				{/if}
+			</div>
+		</Card>
 	{/if}
 </div>
+
+<ConfirmDialog
+	bind:open={confirmingClose}
+	title="Close {companyName}?"
+	description="Jobs come down, the team loses access, and anyone still waiting is told. This cannot be undone."
+	confirmLabel="Close this company"
+	confirmPhrase={companyName}
+	loading={closing}
+	onconfirm={closeThisCompany}
+/>
