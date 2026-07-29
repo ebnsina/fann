@@ -98,7 +98,9 @@
 		<h1 class="text-2xl text-text">API and webhooks</h1>
 		<p class="text-sm text-text-muted">
 			Post jobs and updates from your own site or another tool, and get told when something happens
-			here.
+			here. <a href="/docs/api" class="text-text-accent underline-offset-2 hover:underline"
+				>Read the docs</a
+			>.
 		</p>
 	</div>
 

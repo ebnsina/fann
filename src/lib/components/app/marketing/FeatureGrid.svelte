@@ -25,8 +25,29 @@
 -->
 <div class="grid gap-px border border-border bg-border {layout}">
 	{#each features as feature (feature.title)}
-		<article class="flex flex-col gap-3 bg-surface p-(--fann-space-panel)">
-			<Icon icon={feature.icon} class="size-5 text-text-accent" />
+		<!--
+			Hover is the whole of the motion here, and it is on the cell rather than
+			the icon alone: a card that lights up under the cursor tells you the grid
+			is a set of separate things, which a page of hairlines otherwise leaves you
+			to work out. Nothing moves layout — the surface and the icon shift, the
+			text does not — so a row cannot reflow while somebody is reading it.
+		-->
+		<article
+			class="group relative flex flex-col gap-3 bg-surface p-(--fann-space-panel) transition-colors duration-(--fann-duration-normal) ease-(--ease-out) hover:bg-surface-hover"
+		>
+			<!--
+				A hairline that draws itself across the top on hover. `scale-x` from the
+				left, so it reads as arriving rather than appearing.
+			-->
+			<span
+				aria-hidden="true"
+				class="absolute inset-x-0 top-0 h-px origin-left scale-x-0 bg-accent transition-transform duration-(--fann-duration-normal) ease-(--ease-out) group-hover:scale-x-100"
+			></span>
+
+			<Icon
+				icon={feature.icon}
+				class="size-5 text-text-accent transition-transform duration-(--fann-duration-normal) ease-(--ease-out) group-hover:-translate-y-0.5"
+			/>
 			<h3 class="text-base font-semibold text-text">{feature.title}</h3>
 			<p class="text-sm text-text-muted">{feature.body}</p>
 		</article>

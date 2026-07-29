@@ -54,6 +54,15 @@
 		cn(
 			'relative inline-flex items-center justify-center font-medium whitespace-nowrap',
 			'transition-colors duration-(--fann-duration-fast) ease-(--ease-out)',
+			/*
+			 * A trailing arrow leans in the direction it takes you when the pointer is
+			 * over it. Only the *last* icon, so a leading icon stays put — a label
+			 * whose glyph drifts away from it reads as a wobble rather than an
+			 * affordance. Movement is a hair under 2px and outside the layout flow's
+			 * ability to reflow anything, which is what keeps it from being a fidget.
+			 */
+			'[&>svg:last-child]:transition-transform [&>svg:last-child]:duration-(--fann-duration-normal) [&>svg:last-child]:ease-(--ease-out)',
+			'hover:[&>svg:last-child]:translate-x-0.5',
 			'disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50',
 			VARIANTS[variant],
 			// `link` has no box, so the size padding would misalign it inline.

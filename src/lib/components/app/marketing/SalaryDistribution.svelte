@@ -41,6 +41,8 @@
 	const CELL = { x: 9, y: 7, radius: 3 };
 	/** The line the swarm grows out from, in both directions. */
 	const AXIS = 8;
+	/** How long the swarm takes to fill in across the whole axis. */
+	const SWEEP_MS = 700;
 	const CENTRE = (VIEW.height - AXIS) / 2;
 
 	/** Sorted midpoints — every quantile below reads from this one array. */
@@ -224,11 +226,21 @@
 			/>
 
 			{#each points as point (point.job.slug)}
+				<!--
+					The delay comes from the dot's own x position, so the swarm fills in up
+					the pay scale rather than in whatever order the rows arrived. Capped at
+					`SWEEP_MS` so the last dot is not still arriving after somebody has
+					started reading. Both custom properties are data — a position on an
+					axis and a computed opacity — which is why they are inline styles and
+					everything else here is a class.
+				-->
 				<circle
 					cx={point.cx}
 					cy={point.cy}
 					r={hovered?.slug === point.job.slug ? CELL.radius + 1.5 : CELL.radius}
-					class="fill-accent transition-all duration-(--fann-duration-fast)"
+					class="fann-dot fill-accent transition-[r,opacity] duration-(--fann-duration-fast)"
+					style:--fann-dot-delay="{(point.cx / VIEW.width) * SWEEP_MS}ms"
+					style:--fann-dot-opacity={hovered && hovered.slug !== point.job.slug ? 0.22 : 0.75}
 					opacity={hovered && hovered.slug !== point.job.slug ? 0.22 : 0.75}
 				/>
 			{/each}

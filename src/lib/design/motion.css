@@ -232,3 +232,40 @@
 		animation: fann-shimmer 1.1s var(--fann-ease-out) infinite alternate;
 	}
 }
+
+/* ---------------------------------------------------------------------------
+   The hero swarm filling in.
+
+   Six hundred dots appearing at once reads as a picture that was always there;
+   filling in left to right reads as the board being counted, which is what it
+   actually is. The delay is carried per dot as `--fann-dot-delay`, derived from
+   where the dot sits on the pay axis — so it genuinely sweeps up the scale
+   rather than in arbitrary order.
+
+   Guarded like everything else scroll-driven above: without the media query the
+   whole thing is skipped and the dots are simply drawn. The keyframes end at the
+   dot's normal appearance, so there is no state the browser cannot reach.
+   --------------------------------------------------------------------------- */
+@layer components {
+	@keyframes fann-dot-in {
+		from {
+			opacity: 0;
+			transform: scale(0.4);
+		}
+		to {
+			opacity: var(--fann-dot-opacity, 0.75);
+			transform: scale(1);
+		}
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.fann-dot {
+			/* `transform-box: fill-box` so the scale happens about the circle's own
+			   centre rather than the SVG origin, which would fling it across the chart. */
+			transform-box: fill-box;
+			transform-origin: center;
+			animation: fann-dot-in var(--fann-duration-slow) var(--fann-ease-out) both;
+			animation-delay: var(--fann-dot-delay, 0ms);
+		}
+	}
+}

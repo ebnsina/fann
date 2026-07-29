@@ -52,7 +52,8 @@
 			links: [
 				{ href: '/for-employers', label: 'Why hire here' },
 				{ href: '/join/company', label: 'Set up your company' },
-				{ href: '/hire', label: 'Your companies' }
+				{ href: '/hire', label: 'Your companies' },
+				{ href: '/docs/api', label: 'API and webhooks' }
 			]
 		},
 		{

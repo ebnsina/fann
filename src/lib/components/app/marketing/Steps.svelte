@@ -16,7 +16,14 @@
 
 <ol class="grid gap-px border border-border bg-border {columns}">
 	{#each steps as step, index (step.title)}
-		<li class="relative flex flex-col gap-3 overflow-hidden bg-surface p-(--fann-space-panel)">
+		<!--
+			Hovering nudges the numeral in from the corner and darkens it. It is the
+			one part of a step that is decoration, so it is the one part that can move
+			without a reader losing their place.
+		-->
+		<li
+			class="group relative flex flex-col gap-3 overflow-hidden bg-surface p-(--fann-space-panel) transition-colors duration-(--fann-duration-normal) ease-(--ease-out) hover:bg-surface-hover"
+		>
 			<!--
 				The step number, set large and hung off the top-right corner so the card
 				clips it. Half a numeral reads as a marker; a whole one competes with
@@ -29,7 +36,7 @@
 			-->
 			<span
 				aria-hidden="true"
-				class="pointer-events-none absolute -top-4 -right-3 font-mono text-6xl leading-none font-semibold text-accent-subtle tabular-nums select-none"
+				class="pointer-events-none absolute -top-4 -right-3 font-mono text-6xl leading-none font-semibold text-accent-subtle tabular-nums transition-all duration-(--fann-duration-slow) ease-(--ease-out) select-none group-hover:-right-1 group-hover:text-accent/25"
 			>
 				{index + 1}
 			</span>

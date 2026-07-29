@@ -418,6 +418,20 @@ sit around it and each exists because the sentence version failed:
   things, next to a chart drawing only one of them, which reads as the page
   contradicting itself.
 
+**Hover is where the marketing pages come alive**, not scroll. `FeatureGrid` and
+`Steps` light their own cell — a surface shift, an accent hairline drawing itself
+across the top from the left, the icon or the step numeral moving a couple of
+pixels. None of it moves layout, so a card cannot reflow while somebody is
+reading it, and a page of hairline dividers stops reading as one flat sheet.
+`Button` nudges its **last** icon only: a trailing arrow leans the way it takes
+you, while a leading icon stays put beside its label.
+
+**`.fann-dot`** fills the hero swarm in across the pay axis rather than showing
+six hundred dots at once — the delay is carried per dot as `--fann-dot-delay`,
+derived from the dot's own x position, so it sweeps up the scale rather than in
+row order. It is capped at 700ms end to end; a chart still arriving after
+somebody has started reading is a chart that looks broken.
+
 **`.fann-header`** fades in the header's background _and its backdrop blur_ over
 the first 4rem of scroll. **There is no bottom rule in any state** — a hairline
 under the header cuts the top off every page, and over a hero it is a line drawn
@@ -1212,6 +1226,12 @@ to its social accounts, should not have to retype any of it here.
 - **No cookie fallback.** A browser session must never authenticate this API, or
   any page on the internet could make somebody's browser read their employer's
   applications by fetching a URL.
+
+**`/docs/api` is the public documentation**, and it lives beside the marketing
+pages rather than in a separate site: there are four endpoints, and a page
+somebody reads in two minutes beats a generated reference nobody maintains. It is
+written from what the endpoints actually do, so an endpoint changing means this
+page changes in the same commit.
 
 Webhooks:
 
